@@ -35,6 +35,14 @@ public class DatabaseInitializer {
 
     @PostConstruct
     public void initialize() {
+        // Skip auto-creation when running on a managed database (e.g. Render)
+        // where the DB is already provisioned by the provider.
+        String dbUrlEnv = System.getenv("DB_URL");
+        if (dbUrlEnv != null && !dbUrlEnv.isEmpty()) {
+            log.info("DB_URL detectada — banco gerenciado pelo provedor. Pulando criação automática.");
+            return;
+        }
+
         String dbName = extractDatabaseName(datasourceUrl);
         if (dbName == null || dbName.isEmpty()) {
             log.warn("Não foi possível extrair o nome do banco da URL: {}", datasourceUrl);

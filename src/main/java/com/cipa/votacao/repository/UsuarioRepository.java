@@ -3,6 +3,7 @@ package com.cipa.votacao.repository;
 import com.cipa.votacao.entity.Usuario;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -11,5 +12,5 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     boolean existsByMatricula(String matricula);
     long countByVotouTrue();
     long countByAtivoTrue();
-    Optional<Usuario> findByAtivoTrue();
+    List<Usuario> findByAtivoTrue();
 }
