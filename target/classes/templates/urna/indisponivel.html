@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CIPA - Indisponível</title>
+    <link rel="stylesheet" th:href="@{/css/estilo.css}">
+</head>
+<body>
+    <div class="container">
+        <div class="success-screen">
+            <div class="success-icon" style="color: var(--warning);">⏰</div>
+            <h2 style="color: var(--warning);">VOTAÇÃO INDISPONÍVEL</h2>
+            <p th:text="${mensagem}" style="font-size: 1.1em; margin-bottom: 10px;">A votação não está disponível no momento.</p>
+            <p style="color: #718096;">Aguarde a abertura da eleição.</p>
+            
+            <a th:href="@{/auth/login}" class="btn btn-primary" style="margin-top: 30px; display: inline-block; width: auto; padding: 12px 40px;">
+                Voltar
+            </a>
+        </div>
+    </div>
+</body>
+</html>

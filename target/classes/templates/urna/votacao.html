@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CIPA - Votar</title>
+    <link rel="stylesheet" th:href="@{/css/estilo.css}">
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <h1>🗳️ ELEIÇÃO CIPA</h1>
+            <p>Bem-vindo, <span th:text="${nome}"></span></p>
+            <p>Digite o número do candidato</p>
+        </div>
+
+        <!-- Botão Visualizar Candidatos -->
+        <button type="button" class="btn-view-candidates" onclick="toggleCandidatos()">
+            <span class="btn-view-icon">👥</span>
+            <span>Visualizar Candidatos</span>
+        </button>
+
+        <div th:if="${erro}" class="error" th:text="${erro}"></div>
+
+        <form th:action="@{/votacao/votar}" method="post" id="votoForm">
+            <input type="hidden" name="candidatoId" id="candidatoId" value="">
+            
+            <div class="form-group">
+                <label for="numero">Número do candidato</label>
+                <input type="number" id="numero" name="numero" required min="1" max="99" 
+                       autofocus autocomplete="off" placeholder="Digite 1 ou 2 dígitos">
+            </div>
+
+            <div class="vote-display" id="candidateDisplay">
+                <div class="candidate-photo-container" id="photoContainer" style="display:none;">
+                    <img src="" alt="Foto do Candidato" class="photo" id="candidatePhoto">
+                </div>
+                <div class="candidate-name" id="candidateName"></div>
+                <div class="candidate-number" id="candidateNumber"></div>
+            </div>
+
+            <div class="btn-group" id="actionButtons" style="display:none;">
+                <button type="button" class="btn btn-success" onclick="confirmarVoto()">✅ Confirmar</button>
+                <button type="button" class="btn btn-warning" onclick="corrigirVoto()">✏️ Corrigir</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Modal de Candidatos -->
+    <div class="modal-overlay" id="modalOverlay" onclick="fecharModal(event)">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>👥 Candidatos Disponíveis</h2>
+                <button type="button" class="modal-close" onclick="toggleCandidatos()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="candidates-grid" id="candidatesGrid">
+                    <!-- Preenchido via JS -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <p>Escolha o número do candidato desejado e digite na urna</p>
+                <button type="button" class="btn btn-primary" onclick="toggleCandidatos()" style="margin-top:12px; width: auto; padding: 10px 40px;">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        var candidatos = /*[[${candidatosJson}]]*/ [];
+        
+        // ── Preencher grid de candidatos no modal ──
+        (function() {
+            var grid = document.getElementById('candidatesGrid');
+            if (candidatos.length === 0) {
+                grid.innerHTML = '<p style="text-align:center;color:#999;grid-column:1/-1;">Nenhum candidato cadastrado.</p>';
+                return;
+            }
+            candidatos.forEach(function(c) {
+                var card = document.createElement('div');
+                card.className = 'modal-candidate-card';
+                card.onclick = function() {
+                    toggleCandidatos();
+                    document.getElementById('numero').value = c.numero;
+                    document.getElementById('numero').dispatchEvent(new Event('input'));
+                };
+
+                var photoHtml = '';
+                if (c.foto) {
+                    photoHtml = '<div class="modal-candidate-photo">' +
+                                '<img src="/uploads/' + c.foto + '" alt="' + c.nome + '" onerror="this.parentElement.innerHTML=\'<span class=modal-candidate-placeholder>👤</span>\'">' +
+                                '</div>';
+                } else {
+                    photoHtml = '<div class="modal-candidate-photo"><span class="modal-candidate-placeholder">👤</span></div>';
+                }
+
+                card.innerHTML = photoHtml +
+                    '<div class="modal-candidate-number">Nº ' + c.numero + '</div>' +
+                    '<div class="modal-candidate-name">' + c.nome + '</div>' +
+                    '<div class="modal-candidate-hint">Clique para selecionar</div>';
+                grid.appendChild(card);
+            });
+        })();
+
+        // ── Toggle modal ──
+        function toggleCandidatos() {
+            var overlay = document.getElementById('modalOverlay');
+            overlay.classList.toggle('active');
+            document.body.style.overflow = overlay.classList.contains('active') ? 'hidden' : '';
+        }
+
+        function fecharModal(event) {
+            if (event.target === event.currentTarget) {
+                toggleCandidatos();
+            }
+        }
+
+        // ── Input do número ──
+        document.getElementById('numero').addEventListener('input', function() {
+            var numero = parseInt(this.value);
+            var display = document.getElementById('candidateDisplay');
+            var nameEl = document.getElementById('candidateName');
+            var numberEl = document.getElementById('candidateNumber');
+            var photoContainer = document.getElementById('photoContainer');
+            var photoEl = document.getElementById('candidatePhoto');
+            var buttons = document.getElementById('actionButtons');
+            var hiddenId = document.getElementById('candidatoId');
+            
+            if (isNaN(numero)) {
+                display.classList.remove('active');
+                buttons.style.display = 'none';
+                hiddenId.value = '';
+                return;
+            }
+            
+            var candidato = candidatos.find(function(c) { return c.numero === numero; });
+            
+            if (candidato) {
+                nameEl.textContent = candidato.nome;
+                numberEl.textContent = 'Nº ' + candidato.numero;
+                if (candidato.foto) {
+                    photoEl.src = '/uploads/' + candidato.foto;
+                    photoEl.onerror = function() { photoContainer.style.display = 'none'; };
+                    photoContainer.style.display = 'block';
+                } else {
+                    photoContainer.style.display = 'none';
+                }
+                display.classList.add('active');
+                buttons.style.display = 'flex';
+                hiddenId.value = candidato.id;
+            } else {
+                display.classList.remove('active');
+                buttons.style.display = 'none';
+                hiddenId.value = '';
+            }
+        });
+
+        function confirmarVoto() {
+            var candidatoId = document.getElementById('candidatoId').value;
+            if (!candidatoId) {
+                alert('Selecione um candidato válido.');
+                return;
+            }
+            if (confirm('Confirmar voto para o candidato selecionado?')) {
+                document.getElementById('votoForm').submit();
+            }
+        }
+
+        function corrigirVoto() {
+            document.getElementById('numero').value = '';
+            document.getElementById('candidateDisplay').classList.remove('active');
+            document.getElementById('actionButtons').style.display = 'none';
+            document.getElementById('candidatoId').value = '';
+            document.getElementById('photoContainer').style.display = 'none';
+            document.getElementById('numero').focus();
+        }
+
+        // Fechar com ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && document.getElementById('modalOverlay').classList.contains('active')) {
+                toggleCandidatos();
+            }
+        });
+    </script>
+</body>
+</html>

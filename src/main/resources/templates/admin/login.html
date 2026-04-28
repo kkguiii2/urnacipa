@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Login</title>
+    <link rel="stylesheet" th:href="@{/css/estilo.css}">
+</head>
+<body>
+    <div class="container" style="max-width: 400px;">
+        <div class="logo">
+            <h1>⚙️ ADMIN</h1>
+            <p>Acesso administrativo</p>
+        </div>
+
+        <div th:if="${erro}" class="error" th:text="${erro}"></div>
+
+        <form th:action="@{/admin/login}" method="post">
+            <div class="form-group">
+                <label for="senha">Senha</label>
+                <input type="password" id="senha" name="senha" required autofocus>
+            </div>
+            <button type="submit" class="btn btn-primary">Entrar</button>
+        </form>
+    </div>
+</body>
+</html>

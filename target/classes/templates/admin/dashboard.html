@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Dashboard</title>
+    <link rel="stylesheet" th:href="@{/css/estilo.css}">
+</head>
+<body>
+    <div class="container container-admin">
+        <div class="logo">
+            <h1>⚙️ PAINEL ADMINISTRATIVO</h1>
+            <p>Eleição CIPA</p>
+        </div>
+
+        <div class="nav-tabs">
+            <a th:href="@{/admin/dashboard}" class="active">📊 Dashboard</a>
+            <a th:href="@{/admin/usuarios}">👥 Usuários</a>
+            <a th:href="@{/admin/candidatos}">🗳️ Candidatos</a>
+            <a th:href="@{/admin/configuracao}">⚙️ Config</a>
+            <a th:href="@{/admin/relatorio}">📄 Relatório</a>
+            <a th:href="@{/admin/logout}" style="margin-left: auto;">🚪 Sair</a>
+        </div>
+
+        <div th:if="${sucesso}" class="success" th:text="${sucesso}"></div>
+        <div th:if="${erro}" class="error" th:text="${erro}"></div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3 th:text="${totalUsuarios}">0</h3>
+                <p>Total de Eleitores</p>
+            </div>
+            <div class="stat-card">
+                <h3 th:text="${totalVotos}">0</h3>
+                <p>Votos Registrados</p>
+            </div>
+            <div class="stat-card">
+                <h3 th:text="${participacao}">0%</h3>
+                <p>Participação</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Status da Eleição</h3>
+            <div style="margin: 20px 0;">
+                <span class="status-indicator" 
+                      th:classappend="${configuracao.status == 'ABERTA'} ? 'status-open' : 'status-closed'">
+                    <span class="status-dot"></span>
+                    <span th:text="${configuracao.status}">FECHADA</span>
+                </span>
+            </div>
+
+            <div th:if="${configuracao.dataInicio}">
+                <p><strong>Início:</strong> <span th:text="${#temporals.format(configuracao.dataInicio, 'dd/MM/yyyy HH:mm')}"></span></p>
+            </div>
+            <div th:if="${configuracao.dataFim}">
+                <p><strong>Fim:</strong> <span th:text="${#temporals.format(configuracao.dataFim, 'dd/MM/yyyy HH:mm')}"></span></p>
+            </div>
+
+            <div class="btn-group" style="margin-top: 20px;">
+                <form th:if="${configuracao.status != 'ABERTA'}" th:action="@{/admin/eleicao/abrir}" method="post">
+                    <button type="submit" class="btn btn-success">▶️ Abrir Eleição</button>
+                </form>
+                <form th:if="${configuracao.status == 'ABERTA'}" th:action="@{/admin/eleicao/encerrar}" method="post">
+                    <button type="submit" class="btn btn-danger" onclick="return confirm('Encerrar eleição e gerar relatório?')">⏹️ Encerrar Eleição</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Auto-refresh dashboard every 30 seconds when election is open
+        var status = document.querySelector('.status-indicator');
+        if (status && status.classList.contains('status-open')) {
+            setTimeout(function() { location.reload(); }, 30000);
+        }
+    </script>
+</body>
+</html>
