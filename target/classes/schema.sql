@@ -1,8 +1,12 @@
 -- ============================================================
--- Schema migration: garante que todas as colunas existem
--- Roda automaticamente na inicialização do Spring Boot
+-- Schema reset: remove tabelas legadas e deixa o Hibernate
+-- recriar tudo limpo a partir das entidades Java.
+--
+-- Este script roda ANTES do Hibernate (defer=false).
+-- O Hibernate (ddl-auto=update) cria as tabelas se não existirem.
 -- ============================================================
 
--- Tabela usuarios: adiciona colunas que podem estar faltando
-ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS votou BOOLEAN NOT NULL DEFAULT FALSE;
-ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS ativo BOOLEAN NOT NULL DEFAULT TRUE;
+DROP TABLE IF EXISTS votos CASCADE;
+DROP TABLE IF EXISTS usuarios CASCADE;
+DROP TABLE IF EXISTS candidatos CASCADE;
+DROP TABLE IF EXISTS configuracao_eleicao CASCADE;
