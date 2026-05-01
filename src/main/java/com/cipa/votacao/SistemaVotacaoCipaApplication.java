@@ -11,7 +11,7 @@ public class SistemaVotacaoCipaApplication {
 
     @PostConstruct
     public void init() {
-        TimeZone.setDefault(TimeZone.getTimeZone("America/Sao_Paulo"));
+        TimeZone.setDefault(TimeZone.getTimeZone("America/Manaus"));
     }
 
     public static void main(String[] args) {

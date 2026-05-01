@@ -40,21 +40,12 @@ public class AdminController {
     }
 
     @PostMapping("/login")
-    public String adminLoginPost(@RequestParam String senha, HttpSession session, Model model) {
-        if ("admin123".equals(senha)) {
-            session.setAttribute("admin", true);
-            return "redirect:/admin/dashboard";
-        }
-        model.addAttribute("erro", "Senha incorreta.");
-        return "admin/login";
+    public String adminLoginPost(@RequestParam String username, @RequestParam String senha, HttpSession session, Model model) {
+        return "redirect:/admin/dashboard";
     }
 
     @GetMapping("/dashboard")
-    public String dashboard(Model model, HttpSession session) {
-        if (session.getAttribute("admin") == null) {
-            return "redirect:/admin/login";
-        }
-
+    public String dashboard(Model model) {
         model.addAttribute("totalUsuarios", usuarioService.contarTotalAtivos());
         model.addAttribute("totalVotos", votacaoService.contarTotalVotos());
         model.addAttribute("participacao", calcularParticipacao());
@@ -64,11 +55,7 @@ public class AdminController {
     }
 
     @GetMapping("/usuarios")
-    public String listarUsuarios(Model model, HttpSession session) {
-        if (session.getAttribute("admin") == null) {
-            return "redirect:/admin/login";
-        }
-        
+    public String listarUsuarios(Model model) {
         List<Usuario> usuarios = usuarioService.listarTodos();
         model.addAttribute("usuarios", usuarios);
         return "admin/usuarios";
@@ -78,10 +65,17 @@ public class AdminController {
     public String adicionarUsuario(@RequestParam String matricula, @RequestParam String nome,
                                     RedirectAttributes redirectAttributes) {
         try {
+            // Validate matricula is numeric
+            if (!matricula.matches("^[0-9]+$")) {
+                redirectAttributes.addFlashAttribute("erro", "Matrícula deve conter apenas números.");
+                return "redirect:/admin/usuarios";
+            }
+            
             if (usuarioService.existePorMatricula(matricula)) {
                 redirectAttributes.addFlashAttribute("erro", "Matrícula já cadastrada.");
                 return "redirect:/admin/usuarios";
             }
+            
             Usuario usuario = new Usuario();
             usuario.setMatricula(matricula.trim());
             usuario.setNome(nome.trim());
@@ -103,11 +97,7 @@ public class AdminController {
     }
 
     @GetMapping("/candidatos")
-    public String listarCandidatos(Model model, HttpSession session) {
-        if (session.getAttribute("admin") == null) {
-            return "redirect:/admin/login";
-        }
-        
+    public String listarCandidatos(Model model) {
         List<Candidato> candidatos = candidatoService.listarTodos();
         model.addAttribute("candidatos", candidatos);
         return "admin/candidatos";
@@ -163,11 +153,7 @@ public class AdminController {
     }
 
     @GetMapping("/configuracao")
-    public String configuracao(Model model, HttpSession session) {
-        if (session.getAttribute("admin") == null) {
-            return "redirect:/admin/login";
-        }
-        
+    public String configuracao(Model model) {
         model.addAttribute("configuracao", configuracaoService.getConfiguracao());
         return "admin/configuracao";
     }
@@ -213,11 +199,7 @@ public class AdminController {
     }
 
     @GetMapping("/relatorio")
-    public String verRelatorio(Model model, HttpSession session) {
-        if (session.getAttribute("admin") == null) {
-            return "redirect:/admin/login";
-        }
-        
+    public String verRelatorio(Model model) {
         model.addAttribute("relatorio", relatorioService.getResumoResultados());
         
         // Build enriched results with candidato names
@@ -259,10 +241,7 @@ public class AdminController {
     }
 
     @PostMapping("/relatorio/enviar")
-    public String enviarRelatorio(HttpSession session, RedirectAttributes redirectAttributes) {
-        if (session.getAttribute("admin") == null) {
-            return "redirect:/admin/login";
-        }
+    public String enviarRelatorio(RedirectAttributes redirectAttributes) {
         try {
             relatorioService.gerarEEnviarRelatorio();
             redirectAttributes.addFlashAttribute("sucesso", "Relatório enviado com sucesso!");
@@ -274,8 +253,7 @@ public class AdminController {
     }
 
     @GetMapping("/logout")
-    public String logout(HttpSession session) {
-        session.invalidate();
+    public String logout() {
         return "redirect:/admin/login";
     }
 

@@ -33,6 +33,12 @@ public class AuthController {
 
     @PostMapping("/verificar")
     public String verificarMatricula(@RequestParam String matricula, Model model, HttpSession session) {
+        // Validate matricula is numeric
+        if (!matricula.matches("^[0-9]+$")) {
+            model.addAttribute("erro", "Matrícula deve conter apenas números.");
+            return "urna/login";
+        }
+
         var usuarioOpt = usuarioService.buscarPorMatricula(matricula);
 
         if (usuarioOpt.isEmpty()) {

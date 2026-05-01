@@ -8,7 +8,9 @@ import org.springframework.context.annotation.Configuration;
 import jakarta.annotation.PostConstruct;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 
 /**
@@ -52,16 +54,19 @@ public class DatabaseInitializer {
         // Build URL to the default "postgres" database on the same server
         String baseUrl = datasourceUrl.substring(0, datasourceUrl.lastIndexOf("/")) + "/postgres";
 
-        try (Connection conn = DriverManager.getConnection(baseUrl, username, password)) {
+         try (Connection conn = DriverManager.getConnection(baseUrl, username, password)) {
             // Check if database exists
             boolean exists = false;
-            try (Statement stmt = conn.createStatement();
-                 ResultSet rs = stmt.executeQuery(
-                     "SELECT 1 FROM pg_database WHERE datname = '" + dbName + "'")) {
+            if (!dbName.matches("^[a-zA-Z0-9]+$")) {
+                throw new SQLException("Invalid database name");
+            }
+            try (PreparedStatement pstmt = conn.prepareStatement("SELECT 1 FROM pg_database WHERE datname = ?")) {
+                pstmt.setString(1, dbName);
+                ResultSet rs = pstmt.executeQuery();
                 exists = rs.next();
             }
 
-            if (!exists) {
+             if (!exists) {
                 log.info("Banco de dados '{}' não encontrado. Criando automaticamente...", dbName);
                 try (Statement stmt = conn.createStatement()) {
                     stmt.executeUpdate("CREATE DATABASE " + dbName
@@ -73,7 +78,7 @@ public class DatabaseInitializer {
                     // If locale fails (Windows), try without locale
                     log.debug("Criação com locale pt_BR falhou, tentando sem locale...");
                     try (Statement stmt = conn.createStatement()) {
-                        stmt.executeUpdate("CREATE DATABASE " + dbName + " ENCODING 'UTF8'");
+                        stmt.executeUpdate("CREATE DATABASE \"" + dbName + "\" ENCODING 'UTF8'");
                     }
                 }
                 log.info("Banco de dados '{}' criado com sucesso!", dbName);
