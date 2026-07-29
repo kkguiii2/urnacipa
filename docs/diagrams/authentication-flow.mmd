@@ -1,0 +1,29 @@
+flowchart TD
+    Start{"Tipo de acesso"}
+
+    Start -->|Administrador| AdminForm["GET /admin/login"]
+    AdminForm --> AdminPost["POST /admin/login"]
+    AdminPost --> Provider["CustomAuthenticationProvider"]
+    Provider --> Exists{"Admin existe?"}
+    Exists -->|não| AdminFail["Falha de autenticação"]
+    Exists -->|sim| Active{"ativo = true?"}
+    Active -->|não| AdminFail
+    Active -->|sim| Password{"BCrypt confere?"}
+    Password -->|não| AdminFail
+    Password -->|sim| Role["ROLE_ADMIN + sessão"]
+    Role --> AdminArea["/admin/**"]
+
+    Start -->|Eleitor| VoterForm["GET /auth/login"]
+    VoterForm --> Period{"Eleição aberta e no período?"}
+    Period -->|não| Unavailable["urna/indisponivel"]
+    Period -->|sim| Enrollment["POST /auth/verificar"]
+    Enrollment --> Eligible{"Matrícula numérica, existente,<br/>ativa e ainda não votou?"}
+    Eligible -->|não| VoterForm
+    Eligible -->|sim| Session["matrícula e nome na sessão"]
+    Session --> Confirm["POST /auth/confirmar"]
+    Confirm --> Ballot["/votacao/tela"]
+
+    classDef success fill:#e9f9ef,stroke:#27864a,color:#123c24
+    classDef failure fill:#fff0f0,stroke:#c0392b,color:#641e16
+    class Role,AdminArea,Session,Confirm,Ballot success
+    class AdminFail,Unavailable failure

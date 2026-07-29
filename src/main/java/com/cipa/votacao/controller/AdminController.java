@@ -21,6 +21,10 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
+/**
+ * Atende as páginas administrativas de cadastros, configuração da eleição,
+ * dashboard e relatórios.
+ */
 @Controller
 @RequestMapping("/admin")
 @RequiredArgsConstructor
@@ -55,9 +59,12 @@ public class AdminController {
     }
 
     @GetMapping("/usuarios")
-    public String listarUsuarios(Model model) {
+    public String listarUsuarios(Model model, HttpSession session) {
         List<Usuario> usuarios = usuarioService.listarTodos();
         model.addAttribute("usuarios", usuarios);
+        model.addAttribute(
+                "resultadoImportacao",
+                session.getAttribute(ImportacaoEleitoresController.RESULTADO_SESSION_ATTRIBUTE));
         return "admin/usuarios";
     }
 

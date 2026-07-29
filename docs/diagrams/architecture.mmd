@@ -1,0 +1,34 @@
+flowchart LR
+    subgraph Client["Clientes"]
+        Admin["Navegador do administrador"]
+        Voter["Navegador do eleitor"]
+    end
+
+    subgraph App["Monólito Spring Boot"]
+        Security["Spring Security<br/>sessão e CSRF"]
+        Controllers["Controllers MVC<br/>Admin, Auth, Votação, Importação"]
+        Templates["Thymeleaf + CSS<br/>JavaScript embutido"]
+        Services["Services<br/>regras e orquestração"]
+        Scheduler["Scheduler<br/>a cada 60 segundos"]
+        Repositories["Spring Data JPA<br/>Repositories"]
+    end
+
+    Database[("PostgreSQL")]
+    Uploads[("Diretório uploads")]
+    SMTP["Servidor SMTP"]
+
+    Admin --> Security
+    Voter --> Security
+    Security --> Controllers
+    Controllers --> Templates
+    Controllers --> Services
+    Scheduler --> Services
+    Services --> Repositories
+    Services --> Uploads
+    Services --> SMTP
+    Repositories --> Database
+
+    classDef boundary fill:#e8eef7,stroke:#1e3a5f,color:#152a45
+    classDef data fill:#ecfdf3,stroke:#27864a,color:#123c24
+    class Admin,Voter,Security,Controllers,Templates,Services,Scheduler,Repositories boundary
+    class Database,Uploads,SMTP data

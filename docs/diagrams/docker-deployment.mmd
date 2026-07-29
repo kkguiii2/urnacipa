@@ -1,0 +1,23 @@
+flowchart LR
+    subgraph Build["Build multi-stage"]
+        Source["pom.xml + src"]
+        Maven["maven:3.9.5<br/>eclipse-temurin-17"]
+        Jar["sistema-votacao-cipa-1.0.0.jar"]
+        Source --> Maven --> Jar
+    end
+
+    subgraph Runtime["Container da aplicação"]
+        JRE["eclipse-temurin:17-jre-alpine"]
+        App["java -jar app.jar<br/>porta 8080"]
+        Uploads["/app/uploads<br/>montagem persistente necessária"]
+        JRE --> App
+        App --> Uploads
+    end
+
+    Browser["Navegadores"] -->|HTTP 8080 publicado| App
+    Jar --> App
+    App -->|DB_URL| PostgreSQL[("PostgreSQL persistente")]
+    App -->|SMTP| Mail["Servidor de e-mail"]
+
+    note["Não há docker-compose.yml,<br/>health check ou volume declarado no Dockerfile"]
+    note -.-> Runtime

@@ -1,0 +1,63 @@
+flowchart TB
+    subgraph HTTP["Camada HTTP"]
+        AC["AdminController"]
+        AuC["AuthController"]
+        VC["VotacaoController"]
+        IC["ImportacaoEleitoresController"]
+        EH["ImportacaoUploadExceptionHandler"]
+    end
+
+    subgraph Domain["Aplicação e negócio"]
+        AS["AdminService"]
+        US["UsuarioService"]
+        CS["CandidatoService"]
+        ConfS["ConfiguracaoService"]
+        VS["VotacaoService"]
+        RS["RelatorioService"]
+        ES["EmailService"]
+        UpS["UploadService"]
+        IS["ImportacaoEleitoresService"]
+        LS["LeitorPlanilhaEleitores"]
+        PS["PersistenciaEleitorService"]
+        XS["PlanilhaEleitoresService"]
+    end
+
+    subgraph Persistence["Persistência"]
+        AR["AdminRepository"]
+        UR["UsuarioRepository"]
+        CR["CandidatoRepository"]
+        CFR["ConfiguracaoRepository"]
+        VR["VotoRepository"]
+    end
+
+    AC --> US
+    AC --> CS
+    AC --> ConfS
+    AC --> VS
+    AC --> RS
+    AC --> UpS
+    AuC --> US
+    AuC --> ConfS
+    VC --> VS
+    VC --> CS
+    IC --> IS
+    IC --> XS
+    EH -. trata exceção .-> IC
+
+    AS --> AR
+    US --> UR
+    CS --> CR
+    ConfS --> CFR
+    VS --> VR
+    VS --> CS
+    VS --> ConfS
+    VS --> US
+    RS --> VS
+    RS --> CS
+    RS --> ConfS
+    RS --> US
+    RS --> ES
+    IS --> UR
+    IS --> LS
+    IS --> PS
+    PS --> UR

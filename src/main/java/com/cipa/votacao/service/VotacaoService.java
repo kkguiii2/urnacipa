@@ -14,6 +14,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * Centraliza as condições para votar e grava o voto junto com a marcação do
+ * eleitor dentro da mesma transação.
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -32,6 +36,12 @@ public class VotacaoService {
         return config.isPeriodoVotacao();
     }
 
+    /**
+     * Revalida eleição, eleitor e candidato, cria um voto com token único e
+     * marca o eleitor como votante.
+     *
+     * @return o voto salvo, ou vazio quando alguma condição de negócio falha
+     */
     @Transactional
     public Optional<Voto> registrarVoto(Long candidatoId, String matricula) {
         // 1. Verifica se a eleição está aberta

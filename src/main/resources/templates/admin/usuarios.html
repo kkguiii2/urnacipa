@@ -21,12 +21,12 @@
             <a th:href="@{/admin/logout}" style="margin-left: auto;">🚪 Sair</a>
         </div>
 
-        <div th:if="${sucesso}" class="success" th:text="${sucesso}"></div>
-        <div th:if="${erro}" class="error" th:text="${erro}"></div>
+        <div th:if="${sucesso}" class="success" role="status" aria-live="polite" th:text="${sucesso}"></div>
+        <div th:if="${erro}" class="error" role="alert" th:text="${erro}"></div>
 
         <div class="card">
             <h3>Adicionar Usuário</h3>
-            <form th:action="@{/admin/usuarios/adicionar}" method="post" style="display: flex; gap: 10px; margin-top: 15px; align-items: flex-end;">
+            <form th:action="@{/admin/usuarios/adicionar}" method="post" class="inline-form">
                 <div class="form-group" style="flex: 1; margin-bottom: 0;">
                     <label for="matricula">Matrícula</label>
                     <input type="text" id="matricula" name="matricula" placeholder="Ex: 12345" required>
@@ -38,6 +38,88 @@
                 <button type="submit" class="btn btn-primary" style="width: auto; height: fit-content;">Adicionar</button>
             </form>
         </div>
+
+        <section class="card import-card" aria-labelledby="tituloImportacao">
+            <div class="section-heading">
+                <div>
+                    <h3 id="tituloImportacao">Importar eleitores por Excel</h3>
+                    <p>Cadastre vários eleitores de uma só vez usando a planilha-modelo.</p>
+                </div>
+                <a th:href="@{/admin/usuarios/importacao/modelo}"
+                   class="btn btn-secondary"
+                   download="modelo-importacao-eleitores.xlsx">Baixar planilha-modelo</a>
+            </div>
+
+            <div id="instrucoesImportacao" class="info import-instructions">
+                <p><strong>Formato aceito:</strong> somente <code>.xlsx</code>, com até 5 MB e 5.000 linhas de dados.</p>
+                <p><strong>Colunas obrigatórias:</strong> <code>matricula</code> e <code>nome</code>. A ordem não importa.</p>
+                <p>A matrícula deve ser única, conter somente números e ter no máximo 20 caracteres.</p>
+                <p>Remova ou substitua as linhas de exemplo antes de importar.</p>
+            </div>
+
+            <form th:action="@{/admin/usuarios/importacao}"
+                  method="post"
+                  enctype="multipart/form-data"
+                  class="import-form">
+                <div class="form-group import-file-group">
+                    <label for="arquivoImportacao">Arquivo Excel</label>
+                    <input type="file"
+                           id="arquivoImportacao"
+                           name="arquivo"
+                           accept=".xlsx"
+                           aria-describedby="instrucoesImportacao arquivoImportacaoAjuda"
+                           required>
+                    <small id="arquivoImportacaoAjuda">Selecione um arquivo para habilitar a importação.</small>
+                </div>
+                <button type="submit" id="botaoImportar" class="btn btn-success" disabled>Importar</button>
+            </form>
+        </section>
+
+        <section th:if="${resultadoImportacao}" class="card import-result" aria-labelledby="tituloResultado">
+            <div class="section-heading">
+                <div>
+                    <h3 id="tituloResultado">Resultado da última importação</h3>
+                    <p><strong>Arquivo:</strong> <span th:text="${resultadoImportacao.nomeArquivo}"></span></p>
+                </div>
+                <a th:if="${resultadoImportacao.possuiFalhas()}"
+                   th:href="@{/admin/usuarios/importacao/relatorio-erros}"
+                   class="btn btn-warning"
+                   download="relatorio-erros-importacao-eleitores.xlsx">Baixar relatório de erros</a>
+            </div>
+
+            <div class="import-summary" role="status" aria-live="polite">
+                <div><strong th:text="${resultadoImportacao.totalLinhas}">0</strong><span>Linhas de dados</span></div>
+                <div><strong th:text="${resultadoImportacao.importados}">0</strong><span>Importados</span></div>
+                <div><strong th:text="${resultadoImportacao.ignoradosPorDuplicidade()}">0</strong><span>Duplicidades</span></div>
+                <div><strong th:text="${resultadoImportacao.rejeitados}">0</strong><span>Rejeitados</span></div>
+                <div><strong th:text="${resultadoImportacao.duracaoMillis + ' ms'}">0 ms</strong><span>Duração</span></div>
+            </div>
+
+            <div class="table-scroll">
+                <table class="table import-details">
+                    <thead>
+                        <tr>
+                            <th scope="col">Linha</th>
+                            <th scope="col">Matrícula</th>
+                            <th scope="col">Nome</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Motivo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="detalhe : ${resultadoImportacao.detalhes}">
+                            <td th:text="${detalhe.linha}"></td>
+                            <td th:text="${detalhe.matricula}"></td>
+                            <td th:text="${detalhe.nome}"></td>
+                            <td><span class="badge"
+                                      th:classappend="${detalhe.status.cssClass}"
+                                      th:text="${detalhe.status.descricao}"></span></td>
+                            <td th:text="${detalhe.motivo}"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
 
         <div class="card" style="margin-top: 20px;">
             <h3>Lista de Usuários 
@@ -79,5 +161,14 @@
             </table>
         </div>
     </div>
+
+    <script>
+        const arquivoImportacao = document.getElementById('arquivoImportacao');
+        const botaoImportar = document.getElementById('botaoImportar');
+
+        arquivoImportacao.addEventListener('change', function () {
+            botaoImportar.disabled = arquivoImportacao.files.length === 0;
+        });
+    </script>
 </body>
 </html>

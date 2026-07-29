@@ -12,6 +12,10 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpSession;
 import java.util.*;
 
+/**
+ * Conduz a urna a partir da matrícula mantida na sessão HTTP e delega as
+ * validações e o registro durável do voto ao {@link VotacaoService}.
+ */
 @Controller
 @RequestMapping("/votacao")
 @RequiredArgsConstructor
@@ -68,6 +72,10 @@ public class VotacaoController {
                 .orElse(null);
     }
 
+    /**
+     * Registra a escolha da sessão corrente e invalida a sessão após o sucesso.
+     * As condições críticas são revalidadas pelo service.
+     */
     @PostMapping("/votar")
     public String registrarVoto(@RequestParam Long candidatoId, HttpSession session, Model model) {
         String matricula = (String) session.getAttribute("matricula");

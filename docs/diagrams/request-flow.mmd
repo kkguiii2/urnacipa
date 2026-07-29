@@ -1,0 +1,30 @@
+sequenceDiagram
+    autonumber
+    actor Browser as Navegador
+    participant Sec as Spring Security
+    participant Ctrl as Controller MVC
+    participant Svc as Service
+    participant Repo as Repository JPA
+    participant DB as PostgreSQL
+    participant View as Thymeleaf
+
+    Browser->>Sec: HTTP request + sessão + CSRF
+    alt rota administrativa sem ROLE_ADMIN
+        Sec-->>Browser: redirect para login ou 403
+    else requisição permitida
+        Sec->>Ctrl: request filtrado
+        Ctrl->>Svc: operação de aplicação
+        Svc->>Repo: consulta ou mudança
+        Repo->>DB: SQL via Hibernate
+        DB-->>Repo: dados ou confirmação
+        Repo-->>Svc: entidades/agregados
+        Svc-->>Ctrl: resultado
+        alt resposta HTML
+            Ctrl->>View: Model + nome do template
+            View-->>Browser: HTML
+        else download ou JSON
+            Ctrl-->>Browser: bytes ou objeto serializado
+        else Post/Redirect/Get
+            Ctrl-->>Browser: 302 + flash/session
+        end
+    end

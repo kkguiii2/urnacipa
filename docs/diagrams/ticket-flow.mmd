@@ -1,0 +1,26 @@
+stateDiagram-v2
+    [*] --> FECHADA
+    FECHADA --> ABERTA: administrador abre
+    ABERTA --> FECHADA: administrador encerra
+    ABERTA --> FECHADA: scheduler detecta data_fim ultrapassada
+
+    state ABERTA {
+        [*] --> Identificacao
+        Identificacao --> Confirmacao: matrícula existe, ativa e não votou
+        Confirmacao --> Urna: eleitor confirma
+        Confirmacao --> Identificacao: eleitor corrige
+        Urna --> Validacao: envia candidatoId
+        Validacao --> Urna: regra rejeita
+        Validacao --> VotoRegistrado: eleição, eleitor e candidato válidos
+        VotoRegistrado --> SessaoInvalidada
+        SessaoInvalidada --> [*]
+    }
+
+    note right of FECHADA
+      Reabrir apenas troca o status.
+      Votos e flags "votou" permanecem.
+    end note
+    note left of Identificacao
+      O projeto não possui chamados.
+      Este arquivo representa o fluxo eleitoral existente.
+    end note

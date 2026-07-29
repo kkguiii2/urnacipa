@@ -1,0 +1,39 @@
+erDiagram
+    ADMINS {
+        BIGINT id PK
+        VARCHAR username UK
+        VARCHAR password
+        BOOLEAN ativo
+    }
+
+    USUARIOS {
+        BIGINT id PK
+        VARCHAR matricula UK
+        VARCHAR nome
+        BOOLEAN votou
+        BOOLEAN ativo
+    }
+
+    CANDIDATOS {
+        BIGINT id PK
+        INTEGER numero UK
+        VARCHAR nome
+        VARCHAR foto
+        BOOLEAN ativo
+    }
+
+    VOTOS {
+        BIGINT id PK
+        BIGINT candidato_id
+        VARCHAR token UK
+        TIMESTAMP data_hora
+    }
+
+    CONFIGURACAO_ELEICAO {
+        BIGINT id PK
+        TIMESTAMP data_inicio
+        TIMESTAMP data_fim
+        VARCHAR status
+    }
+
+    CANDIDATOS ||--o{ VOTOS : "referência lógica sem FK"

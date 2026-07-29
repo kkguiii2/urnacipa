@@ -15,6 +15,10 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+/**
+ * Consolida a apuração da eleição, produz o relatório Excel e coordena seu
+ * envio por e-mail.
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j

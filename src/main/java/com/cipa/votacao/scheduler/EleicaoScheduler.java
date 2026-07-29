@@ -10,6 +10,10 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 
+/**
+ * Verifica periodicamente se a eleição aberta ultrapassou a data final e, nesse
+ * caso, encerra-a antes de gerar e enviar o relatório.
+ */
 @Component
 @EnableScheduling
 @RequiredArgsConstructor
@@ -19,6 +23,9 @@ public class EleicaoScheduler {
     private final ConfiguracaoService configuracaoService;
     private final RelatorioService relatorioService;
 
+    /**
+     * Executa a verificação a cada 60 segundos, conforme o {@code fixedRate}.
+     */
     @Scheduled(fixedRate = 60000)
     public void verificarEncerramentoEleicao() {
         log.info("Verificando encerramento da eleição...");
