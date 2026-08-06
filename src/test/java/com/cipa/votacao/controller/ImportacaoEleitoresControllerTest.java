@@ -1,6 +1,9 @@
 package com.cipa.votacao.controller;
 
 import com.cipa.votacao.config.SecurityConfig;
+import com.cipa.votacao.config.CustomAuthenticationProvider;
+import com.cipa.votacao.config.MesarioAuthenticationProvider;
+import com.cipa.votacao.config.CabineAuthenticationProvider;
 import com.cipa.votacao.dto.importacao.DetalheImportacaoEleitorDto;
 import com.cipa.votacao.dto.importacao.ResultadoImportacaoEleitoresDto;
 import com.cipa.votacao.dto.importacao.StatusImportacaoEleitor;
@@ -8,12 +11,12 @@ import com.cipa.votacao.exception.PlanilhaImportacaoException;
 import com.cipa.votacao.service.AdminService;
 import com.cipa.votacao.service.ImportacaoEleitoresService;
 import com.cipa.votacao.service.PlanilhaEleitoresService;
+import com.cipa.votacao.service.ConfiguracaoService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
@@ -53,7 +56,16 @@ class ImportacaoEleitoresControllerTest {
     private AdminService adminService;
 
     @MockBean
-    private AuthenticationProvider authenticationProvider;
+    private CustomAuthenticationProvider customAuthenticationProvider;
+
+    @MockBean
+    private MesarioAuthenticationProvider mesarioAuthenticationProvider;
+
+    @MockBean
+    private CabineAuthenticationProvider cabineAuthenticationProvider;
+
+    @MockBean
+    private ConfiguracaoService configuracaoService;
 
     @Test
     void exigeAutenticacaoParaImportar() throws Exception {
@@ -61,6 +73,12 @@ class ImportacaoEleitoresControllerTest {
                 .andExpect(status().is3xxRedirection());
 
         verify(importacaoEleitoresService, never()).importar(any());
+    }
+
+    @Test
+    void uploadsSaoLiberadosExplicitamenteSemAutenticacao() throws Exception {
+        mockMvc.perform(get("/uploads/foto-inexistente.png"))
+                .andExpect(status().isNotFound());
     }
 
     @Test

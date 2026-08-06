@@ -18,13 +18,15 @@
             <a th:href="@{/admin/candidatos}">🗳️ Candidatos</a>
             <a th:href="@{/admin/configuracao}">⚙️ Config</a>
             <a th:href="@{/admin/relatorio}">📄 Relatório</a>
-            <a th:href="@{/admin/logout}" style="margin-left: auto;">🚪 Sair</a>
+            <form th:action="@{/admin/logout}" method="post" class="nav-logout-form">
+                <button type="submit" class="nav-logout">🚪 Sair</button>
+            </form>
         </div>
 
         <div th:if="${sucesso}" class="success" role="status" aria-live="polite" th:text="${sucesso}"></div>
         <div th:if="${erro}" class="error" role="alert" th:text="${erro}"></div>
 
-        <div class="card">
+        <div class="card" th:if="${!cadastroBloqueado}">
             <h3>Adicionar Usuário</h3>
             <form th:action="@{/admin/usuarios/adicionar}" method="post" class="inline-form">
                 <div class="form-group" style="flex: 1; margin-bottom: 0;">
@@ -39,7 +41,7 @@
             </form>
         </div>
 
-        <section class="card import-card" aria-labelledby="tituloImportacao">
+        <section class="card import-card" aria-labelledby="tituloImportacao" th:if="${!cadastroBloqueado}">
             <div class="section-heading">
                 <div>
                     <h3 id="tituloImportacao">Importar eleitores por Excel</h3>
@@ -135,14 +137,14 @@
                         <th>Nome</th>
                         <th>Status</th>
                         <th>Votou</th>
-                        <th>Ações</th>
+                        <th th:if="${!cadastroBloqueado}">Ações</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr th:each="usuario : ${usuarios}">
                         <td><strong th:text="${usuario.matricula}"></strong></td>
                         <td th:text="${usuario.nome}"></td>
-                        <td>
+                        <td th:if="${!cadastroBloqueado}">
                             <span class="badge" th:classappend="${usuario.ativo} ? 'badge-success' : 'badge-danger'"
                                   th:text="${usuario.ativo} ? 'Ativo' : 'Inativo'"></span>
                         </td>

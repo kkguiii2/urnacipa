@@ -9,6 +9,9 @@ $env:DB_URL='jdbc:postgresql://localhost:5432/cipa'
 $env:DB_USERNAME='<usuario>'
 $env:DB_PASSWORD='<senha>'
 $env:ADMIN_PASSWORD='<senha-inicial-forte>'
+$env:MESARIO_PASSWORD='<senha-inicial-forte>'
+$env:CABINE_PASSWORD='<senha-do-dispositivo>'
+$env:SESSION_COOKIE_SECURE='false'
 mvn spring-boot:run
 ```
 
@@ -59,6 +62,9 @@ docker run --name cipa-app -p 8080:8080 `
   -e DB_USERNAME='<usuario>' `
   -e DB_PASSWORD='<senha>' `
   -e ADMIN_PASSWORD='<senha-inicial-forte>' `
+  -e MESARIO_PASSWORD='<senha-inicial-forte>' `
+  -e CABINE_PASSWORD='<senha-do-dispositivo>' `
+  -e SESSION_COOKIE_SECURE='true' `
   -v cipa-uploads:/app/uploads `
   sistema-votacao-cipa:1.0.0
 ```

@@ -1,25 +1,28 @@
 package com.cipa.votacao.controller;
 
 import com.cipa.votacao.entity.Candidato;
+import com.cipa.votacao.exception.CabineVotacaoException;
 import com.cipa.votacao.service.CandidatoService;
 import com.cipa.votacao.service.VotacaoService;
+import jakarta.servlet.http.HttpSession;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import jakarta.servlet.http.HttpSession;
-import java.util.*;
-
-/**
- * Conduz a urna a partir da matrícula mantida na sessão HTTP e delega as
- * validações e o registro durável do voto ao {@link VotacaoService}.
- */
 @Controller
 @RequestMapping("/votacao")
 @RequiredArgsConstructor
-@Slf4j
 public class VotacaoController {
 
     private final VotacaoService votacaoService;
@@ -27,8 +30,16 @@ public class VotacaoController {
 
     @GetMapping("/tela")
     public String telaVotacao(HttpSession session, Model model) {
-        String matricula = (String) session.getAttribute("matricula");
-        if (matricula == null) {
+        Long usuarioId = (Long) session.getAttribute("usuarioId");
+        Long sessaoCabineId = (Long) session.getAttribute("sessaoCabineId");
+        if (usuarioId == null || sessaoCabineId == null) {
+            return "redirect:/auth/login";
+        }
+
+        try {
+            votacaoService.validarSessaoCabine(sessaoCabineId, usuarioId);
+        } catch (CabineVotacaoException e) {
+            limparEleitor(session);
             return "redirect:/auth/login";
         }
 
@@ -38,75 +49,67 @@ public class VotacaoController {
         }
 
         List<Candidato> candidatos = candidatoService.listarAtivos();
-        
-        // Build safe candidato list for JavaScript (avoid circular references)
         List<Map<String, Object>> candidatosJson = new ArrayList<>();
-        for (Candidato c : candidatos) {
-            Map<String, Object> map = new HashMap<>();
-            map.put("id", c.getId());
-            map.put("numero", c.getNumero());
-            map.put("nome", c.getNome());
-            map.put("foto", c.getFoto());
-            candidatosJson.add(map);
+        for (Candidato candidato : candidatos) {
+            Map<String, Object> item = new HashMap<>();
+            item.put("id", candidato.getId());
+            item.put("numero", candidato.getNumero());
+            item.put("nome", candidato.getNome());
+            item.put("foto", fotoSegura(candidato.getFoto()));
+            candidatosJson.add(item);
         }
-        
+
         model.addAttribute("candidatos", candidatos);
         model.addAttribute("candidatosJson", candidatosJson);
         model.addAttribute("nome", session.getAttribute("nome"));
-        
         return "urna/votacao";
     }
 
     @GetMapping("/candidato/{numero}")
     @ResponseBody
-    public Map<String, Object> buscarCandidato(@PathVariable Integer numero) {
+    public Map<String, Object> buscarCandidato(@PathVariable Integer numero, HttpSession session) {
+        Long usuarioId = (Long) session.getAttribute("usuarioId");
+        Long sessaoCabineId = (Long) session.getAttribute("sessaoCabineId");
+        if (usuarioId == null || sessaoCabineId == null) {
+            return null;
+        }
+        try {
+            votacaoService.validarSessaoCabine(sessaoCabineId, usuarioId);
+        } catch (CabineVotacaoException e) {
+            limparEleitor(session);
+            return null;
+        }
         return candidatoService.buscarPorNumeroAtivo(numero)
-                .map(c -> {
-                    Map<String, Object> map = new HashMap<>();
-                    map.put("id", c.getId());
-                    map.put("numero", c.getNumero());
-                    map.put("nome", c.getNome());
-                    map.put("foto", c.getFoto());
-                    return map;
+                .map(candidato -> {
+                    Map<String, Object> item = new HashMap<>();
+                    item.put("id", candidato.getId());
+                    item.put("numero", candidato.getNumero());
+                    item.put("nome", candidato.getNome());
+                    item.put("foto", fotoSegura(candidato.getFoto()));
+                    return item;
                 })
                 .orElse(null);
     }
 
-    /**
-     * Registra a escolha da sessão corrente e invalida a sessão após o sucesso.
-     * As condições críticas são revalidadas pelo service.
-     */
     @PostMapping("/votar")
-    public String registrarVoto(@RequestParam Long candidatoId, HttpSession session, Model model) {
-        String matricula = (String) session.getAttribute("matricula");
-        if (matricula == null) {
+    public String registrarVoto(
+            @RequestParam Long candidatoId,
+            HttpSession session,
+            RedirectAttributes redirectAttributes) {
+        Long usuarioId = (Long) session.getAttribute("usuarioId");
+        Long sessaoCabineId = (Long) session.getAttribute("sessaoCabineId");
+        if (usuarioId == null || sessaoCabineId == null) {
             return "redirect:/auth/login";
         }
 
-        if (!votacaoService.isVotacaoLiberada()) {
-            model.addAttribute("mensagem", "Votação não disponível no momento.");
-            return "urna/indisponivel";
-        }
-
-        Optional<Candidato> candidatoOpt = candidatoService.buscarPorId(candidatoId);
-        if (candidatoOpt.isEmpty()) {
-            model.addAttribute("erro", "Candidato não encontrado.");
-            return "redirect:/votacao/tela";
-        }
-
-        var voto = votacaoService.registrarVoto(candidatoId, matricula);
-        
-        if (voto.isPresent()) {
-            Candidato candidato = candidatoOpt.get();
-            // Store candidato info in model before invalidating session
-            model.addAttribute("candidatoNome", candidato.getNome());
-            model.addAttribute("candidatoNumero", candidato.getNumero());
-            session.invalidate();
+        if (votacaoService.registrarVoto(candidatoId, usuarioId, sessaoCabineId).isPresent()) {
+            limparEleitor(session);
             return "urna/sucesso";
-        } else {
-            model.addAttribute("erro", "Erro ao registrar voto. Tente novamente.");
-            return "redirect:/votacao/tela";
         }
+
+        limparEleitor(session);
+        redirectAttributes.addFlashAttribute("erro", "Não foi possível registrar o voto.");
+        return "redirect:/auth/login";
     }
 
     @GetMapping("/sucesso")
@@ -114,9 +117,17 @@ public class VotacaoController {
         return "urna/sucesso";
     }
 
-    @GetMapping("/reset")
-    public String reset(HttpSession session) {
-        session.invalidate();
-        return "redirect:/auth/login";
+    private void limparEleitor(HttpSession session) {
+        session.removeAttribute("matricula");
+        session.removeAttribute("usuarioId");
+        session.removeAttribute("nome");
+        session.removeAttribute("sessaoCabineId");
+    }
+
+    private String fotoSegura(String foto) {
+        if (foto == null || !foto.matches("^[a-f0-9-]{36}\\.(jpg|jpeg|png)$")) {
+            return null;
+        }
+        return foto;
     }
 }

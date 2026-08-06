@@ -20,6 +20,9 @@ public class Voto {
     @Column(name = "candidato_id", nullable = false)
     private Long candidatoId;
 
+    @Column(name = "eleicao_id")
+    private Long eleicaoId;
+
     @Column(nullable = false, unique = true)
     private String token;
 

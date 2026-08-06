@@ -6,14 +6,16 @@ O sistema informatiza uma eleição da CIPA. Ele reúne o cadastro dos participa
 o controle do período eleitoral, a identificação do eleitor, a escolha de um
 candidato e a apuração administrativa.
 
-O objetivo observável é permitir uma votação web com uma área pública de urna e
-uma área administrativa protegida.
+O objetivo observável é permitir uma votação presencial em cabine única, com
+autorização independente do mesário e administração protegida.
 
 ## Público e atores
 
 | Ator | Evidência de uso |
 | --- | --- |
 | Eleitor | informa a matrícula, confirma a identidade e registra um voto |
+| Mesário | confere a pessoa e libera uma matrícula para a cabine |
+| Dispositivo da cabine | exige credencial própria e executa a urna |
 | Administrador ativo | gerencia eleitores, candidatos, eleição e relatórios |
 | Agendador interno | verifica o fim da eleição a cada 60 segundos |
 | PostgreSQL | persiste a configuração, usuários, candidatos, votos e admins |
@@ -28,34 +30,31 @@ confirmada no estado atual do projeto.**
 1. Um administrador autenticado cadastra ou importa eleitores.
 2. Cadastra candidatos, opcionalmente com foto.
 3. Define início e fim e abre a eleição.
-4. O eleitor informa uma matrícula ativa que ainda não votou.
-5. O nome é exibido para confirmação e a matrícula é guardada na sessão.
+4. O mesário confere o eleitor e libera sua matrícula.
+5. A cabine aceita somente a matrícula liberada dentro do prazo.
 6. A urna lista candidatos ativos e recebe a escolha.
-7. O serviço valida novamente eleição, eleitor e candidato.
-8. Um voto anônimo em relação à tabela de usuários é salvo e o eleitor é marcado
-   como tendo votado.
-9. O administrador acompanha totais, ranking e relatório.
+7. O serviço valida eleição, eleitor, candidato e sessão da cabine.
+8. A participação é marcada atomicamente e o voto é salvo sem referência ao eleitor.
+9. O administrador acompanha a participação; o ranking só abre após encerrar.
 10. O encerramento manual ou agendado fecha a eleição e tenta enviar o relatório.
 
 ## Escopo confirmado
 
 - uma eleição representada pela configuração mais recente;
-- um papel administrativo (`ROLE_ADMIN`);
+- papéis separados `ROLE_ADMIN`, `ROLE_MESARIO` e `ROLE_CABINE`;
 - candidatos numerados;
-- eleitor identificado somente por matrícula;
-- voto armazenado com `candidato_id`, token UUID e data/hora;
+- eleitor autorizado presencialmente e identificado pela matrícula liberada;
+- voto armazenado com eleição, candidato, token UUID e data/hora;
 - relatório Excel e resumo textual;
 - interface em português, renderizada com Thymeleaf.
 
 ## Limitações observadas
 
-- não há suporte implementado a múltiplas eleições históricas;
 - o voto não contém FK JPA nem referência ao eleitor;
 - não há paginação ou filtros nas listas;
 - não há edição de eleitor ou candidato; somente inclusão, exclusão e, para
   candidato, ativação/desativação;
-- não há reabertura distinta: abrir novamente apenas troca o status para
-  `ABERTA`, sem limpar votos ou `usuario.votou`;
+- uma nova eleição precisa ser criada explicitamente após encerrar a anterior;
 - não existe exportação CSV ou PDF efetiva; o e-mail recebe PDF como `null`;
 - não há auditoria administrativa, recuperação de senha ou troca de senha pela
   interface;

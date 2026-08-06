@@ -2,6 +2,7 @@ package com.cipa.votacao.service;
 
 import com.cipa.votacao.entity.Candidato;
 import com.cipa.votacao.repository.CandidatoRepository;
+import com.cipa.votacao.repository.VotoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +15,7 @@ import java.util.Optional;
 public class CandidatoService {
 
     private final CandidatoRepository candidatoRepository;
+    private final VotoRepository votoRepository;
 
     public Candidato salvar(Candidato candidato) {
         return candidatoRepository.save(candidato);
@@ -54,6 +56,9 @@ public class CandidatoService {
     }
 
     public void excluir(Long id) {
+        if (votoRepository.existsByCandidatoId(id)) {
+            throw new IllegalStateException("Candidato com votos registrados não pode ser excluído.");
+        }
         candidatoRepository.deleteById(id);
     }
 

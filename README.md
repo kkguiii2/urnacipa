@@ -18,7 +18,9 @@ Excel dos resultados.
 - cadastro, ativação, desativação e exclusão de candidatos, com foto opcional;
 - configuração, abertura e encerramento manual da eleição;
 - encerramento automático por agendamento a cada 60 segundos;
-- identificação do eleitor por matrícula e bloqueio lógico de novo voto;
+- liberação presencial pelo mesário e identificação da matrícula liberada na cabine;
+- autenticação separada para administrador, mesário e dispositivo da cabine;
+- bloqueio atômico de voto repetido por eleitor e eleição;
 - votação em candidato ativo durante o período configurado;
 - dashboard de participação e ranking;
 - geração e download de relatório Excel;
@@ -27,10 +29,10 @@ Excel dos resultados.
 ## Tecnologias
 
 - Java 17;
-- Spring Boot 3.2.0;
+- Spring Boot 3.5.14;
 - Spring MVC, Thymeleaf, Spring Security, Spring Data JPA e Bean Validation;
 - PostgreSQL;
-- Apache POI 5.2.5;
+- Apache POI 5.5.1;
 - Maven;
 - Docker com build multi-stage.
 
@@ -57,7 +59,7 @@ Detalhes: [arquitetura](docs/architecture.md) e
 
 1. Crie ou disponibilize um banco PostgreSQL.
 1. Defina `DB_URL`, `DB_USERNAME`, `DB_PASSWORD` e, na primeira inicialização,
-   `ADMIN_PASSWORD`.
+   `ADMIN_PASSWORD`, `MESARIO_PASSWORD` e `CABINE_PASSWORD`.
 1. Compile e teste:
 
 ```powershell
@@ -116,6 +118,14 @@ persistente em produção.
 | `EMAIL_DESTINATARIO` | destinatário do relatório | vazio |
 | `ADMIN_USERNAME` | usuário administrativo inicial | `admin` |
 | `ADMIN_PASSWORD` | senha administrativa inicial quando não há admins | vazio |
+| `MESARIO_USERNAME` | usuário inicial do mesário | `mesario` |
+| `MESARIO_PASSWORD` | senha inicial quando não há mesários | vazio |
+| `CABINE_USERNAME` | usuário do dispositivo da cabine | `urna` |
+| `CABINE_PASSWORD` | senha do dispositivo da cabine | vazio |
+| `CABINE_LIBERACAO_SEGUNDOS` | validade da liberação antes da identificação | `180` |
+| `CABINE_VOTACAO_SEGUNDOS` | validade da sessão após identificação | `600` |
+| `CABINE_MAX_TENTATIVAS` | matrículas incorretas antes do bloqueio | `3` |
+| `SESSION_COOKIE_SECURE` | envia cookie somente por HTTPS | `false` |
 | `IMPORTACAO_MAX_FILE_SIZE` | limite multipart do arquivo | `5MB` |
 | `IMPORTACAO_MAX_REQUEST_SIZE` | limite da requisição | `6MB` |
 | `IMPORTACAO_MAX_FILE_SIZE_BYTES` | limite validado pela aplicação | `5242880` |

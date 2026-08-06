@@ -5,6 +5,7 @@ import com.cipa.votacao.dto.importacao.ResultadoImportacaoEleitoresDto;
 import com.cipa.votacao.exception.PlanilhaImportacaoException;
 import com.cipa.votacao.service.ImportacaoEleitoresService;
 import com.cipa.votacao.service.PlanilhaEleitoresService;
+import com.cipa.votacao.service.ConfiguracaoService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +35,7 @@ public class ImportacaoEleitoresController {
 
     private final ImportacaoEleitoresService importacaoEleitoresService;
     private final PlanilhaEleitoresService planilhaEleitoresService;
+    private final ConfiguracaoService configuracaoService;
 
     /**
      * Processa o upload usando Post/Redirect/Get e mantém o resultado detalhado
@@ -45,6 +47,10 @@ public class ImportacaoEleitoresController {
             HttpSession session,
             RedirectAttributes redirectAttributes) {
         session.removeAttribute(RESULTADO_SESSION_ATTRIBUTE);
+        if (configuracaoService.isCadastroBloqueado()) {
+            redirectAttributes.addFlashAttribute("erro", "Importação bloqueada durante a eleição.");
+            return "redirect:/admin/usuarios";
+        }
         if (form.getArquivo() == null || form.getArquivo().isEmpty()) {
             redirectAttributes.addFlashAttribute("erro", "Selecione um arquivo .xlsx para importar.");
             return "redirect:/admin/usuarios";

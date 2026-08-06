@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ativar cabine</title>
+    <link rel="stylesheet" th:href="@{/css/estilo.css}">
+</head>
+<body>
+    <main class="container" style="max-width: 420px;">
+        <div class="logo">
+            <h1>ATIVAR CABINE</h1>
+            <p>Credencial exclusiva do tablet de votação</p>
+        </div>
+        <div th:if="${param.error}" class="error" role="alert">Credencial da cabine inválida.</div>
+        <div th:if="${param.logout}" class="success" role="status">Cabine desativada.</div>
+        <form th:action="@{/cabine/login}" method="post">
+            <div class="form-group">
+                <label for="username">Identificador</label>
+                <input type="text" id="username" name="username" required autocomplete="username" autofocus>
+            </div>
+            <div class="form-group">
+                <label for="password">Senha da cabine</label>
+                <input type="password" id="password" name="password" required autocomplete="current-password">
+            </div>
+            <button type="submit" class="btn btn-primary">Ativar tablet</button>
+        </form>
+    </main>
+</body>
+</html>

@@ -19,6 +19,10 @@ public class UsuarioService {
         return usuarioRepository.findByMatricula(matricula);
     }
 
+    public Optional<Usuario> buscarPorId(Long id) {
+        return usuarioRepository.findById(id);
+    }
+
     public boolean existePorMatricula(String matricula) {
         return usuarioRepository.existsByMatricula(matricula);
     }
@@ -57,6 +61,11 @@ public class UsuarioService {
 
     public void excluir(Long id) {
         usuarioRepository.deleteById(id);
+    }
+
+    @Transactional
+    public void resetarIndicadorVoto() {
+        usuarioRepository.resetarIndicadorVoto();
     }
 
     @Transactional

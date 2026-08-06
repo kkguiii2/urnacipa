@@ -18,7 +18,9 @@
             <a th:href="@{/admin/candidatos}">🗳️ Candidatos</a>
             <a th:href="@{/admin/configuracao}" class="active">⚙️ Config</a>
             <a th:href="@{/admin/relatorio}">📄 Relatório</a>
-            <a th:href="@{/admin/logout}" style="margin-left: auto;">🚪 Sair</a>
+            <form th:action="@{/admin/logout}" method="post" class="nav-logout-form">
+                <button type="submit" class="nav-logout">🚪 Sair</button>
+            </form>
         </div>
 
         <div th:if="${sucesso}" class="success" th:text="${sucesso}"></div>
@@ -26,7 +28,8 @@
 
         <div class="card">
             <h3>Horários da Eleição</h3>
-            <form th:action="@{/admin/configuracao/salvar}" method="post" style="margin-top: 15px;">
+            <form th:action="@{/admin/configuracao/salvar}" method="post" style="margin-top: 15px;"
+                  th:if="${configuracao.status != 'ABERTA'}">
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                     <div class="form-group">
                         <label for="dataInicio">Data de Início</label>
@@ -55,13 +58,20 @@
             
             <h3 style="margin-top: 20px;">Controle Manual</h3>
             <div class="btn-group" style="margin-top: 15px;">
-                <form th:action="@{/admin/eleicao/abrir}" method="post">
+                <form th:if="${configuracao.status != 'ABERTA'}" th:action="@{/admin/eleicao/abrir}" method="post">
                     <button type="submit" class="btn btn-success">▶️ Abrir Eleição</button>
                 </form>
-                <form th:action="@{/admin/eleicao/encerrar}" method="post">
+                <form th:if="${configuracao.status == 'ABERTA'}" th:action="@{/admin/eleicao/encerrar}" method="post">
                     <button type="submit" class="btn btn-danger" onclick="return confirm('Encerrar eleição?')">⏹️ Encerrar Eleição</button>
                 </form>
             </div>
+            <form th:if="${configuracao.status != 'ABERTA'}" th:action="@{/admin/eleicao/nova}" method="post"
+                  style="margin-top: 20px;">
+                <button type="submit" class="btn btn-secondary"
+                        onclick="return confirm('Criar uma nova eleição? Os votos anteriores permanecerão no histórico.')">
+                    Criar nova eleição
+                </button>
+            </form>
         </div>
     </div>
 </body>

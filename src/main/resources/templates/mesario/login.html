@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mesário - Login</title>
+    <link rel="stylesheet" th:href="@{/css/estilo.css}">
+</head>
+<body>
+    <main class="container" style="max-width: 420px;">
+        <div class="logo">
+            <h1>PAINEL DO MESÁRIO</h1>
+            <p>Liberação segura da cabine</p>
+        </div>
+
+        <div th:if="${param.error}" class="error" role="alert">Usuário ou senha inválidos.</div>
+        <div th:if="${param.logout}" class="success" role="status">Sessão encerrada com segurança.</div>
+
+        <form th:action="@{/mesario/login}" method="post">
+            <div class="form-group">
+                <label for="username">Usuário</label>
+                <input type="text" id="username" name="username" required autofocus autocomplete="username">
+            </div>
+            <div class="form-group">
+                <label for="password">Senha</label>
+                <input type="password" id="password" name="password" required autocomplete="current-password">
+            </div>
+            <button type="submit" class="btn btn-primary">Entrar</button>
+        </form>
+    </main>
+</body>
+</html>

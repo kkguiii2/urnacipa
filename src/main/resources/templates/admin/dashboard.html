@@ -19,7 +19,9 @@
             <a th:href="@{/admin/candidatos}">🗳️ Candidatos</a>
             <a th:href="@{/admin/configuracao}">⚙️ Config</a>
             <a th:href="@{/admin/relatorio}">📄 Relatório</a>
-            <a th:href="@{/admin/logout}" style="margin-left: auto;">🚪 Sair</a>
+            <form th:action="@{/admin/logout}" method="post" class="nav-logout-form">
+                <button type="submit" class="nav-logout">🚪 Sair</button>
+            </form>
         </div>
 
         <div th:if="${sucesso}" class="success" th:text="${sucesso}"></div>

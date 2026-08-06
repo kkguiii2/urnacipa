@@ -18,14 +18,16 @@
             <a th:href="@{/admin/candidatos}">🗳️ Candidatos</a>
             <a th:href="@{/admin/configuracao}">⚙️ Config</a>
             <a th:href="@{/admin/relatorio}" class="active">📄 Relatório</a>
-            <a th:href="@{/admin/logout}" style="margin-left: auto;">🚪 Sair</a>
+            <form th:action="@{/admin/logout}" method="post" class="nav-logout-form">
+                <button type="submit" class="nav-logout">🚪 Sair</button>
+            </form>
         </div>
 
         <div th:if="${sucesso}" class="success" th:text="${sucesso}"></div>
         <div th:if="${erro}" class="error" th:text="${erro}"></div>
 
         <div class="card">
-            <h3>Resultado em Tempo Real</h3>
+            <h3>Resultado Final</h3>
             <div th:if="${#lists.isEmpty(resultados)}" class="info">
                 <p>Nenhum voto registrado ainda.</p>
             </div>

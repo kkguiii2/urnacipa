@@ -4,7 +4,7 @@
 
 **Versão do software:** 1.0.0
 
-**Tecnologia principal:** Java 17 e Spring Boot 3.2.0
+**Tecnologia principal:** Java 17 e Spring Boot 3.5.14
 
 **Documento levantado em:** 28 de julho de 2026
 
@@ -43,7 +43,8 @@ O contexto organizacional específico que motivou sua criação:
 O objetivo observável é executar uma eleição CIPA pela web.
 
 - **Administrador:** prepara e acompanha a eleição.
-- **Eleitor:** identifica-se por matrícula, confirma o nome e vota.
+- **Mesário:** confere presencialmente e libera a matrícula.
+- **Eleitor:** digita a matrícula liberada e vota na cabine.
 - **Responsável pelo resultado:** obtém relatório e, se configurado, recebe-o por
   e-mail.
 
@@ -61,23 +62,26 @@ Páginas HTML são renderizadas no servidor. A matrícula do eleitor fica
 temporariamente na sessão; cadastros, estado da eleição e votos ficam no banco.
 
 Essa arquitetura mantém implantação simples para o escopo atual. Os principais
-pontos de atenção são migrations ausentes, dependência de disco para fotos e
-lacunas de concorrência no voto.
+pontos de atenção operacionais são migrations ausentes, dependência de disco
+persistente para fotos, HTTPS e backup.
 
 ---
 
 ## Banco de dados
 
-Cinco entidades representam o sistema:
+As entidades centrais representam cadastros, eleição e cabine:
 
 - `Admin`: credencial e status do administrador;
 - `Usuario`: matrícula, nome, status e indicador de voto;
 - `Candidato`: número, nome, foto e status;
 - `Voto`: candidato, token e momento;
 - `ConfiguracaoEleicao`: início, fim e status.
+- `Mesario`: credencial e status do mesário;
+- `CabineVotacao` e `SessaoCabine`: liberação única, prazos e estado;
+- `ParticipacaoEleicao`: bloqueio de voto repetido separado da escolha.
 
-O voto não guarda o eleitor. Também não existe FK entre voto e candidato no
-estado atual.
+O voto não guarda o eleitor. O esquema SQL protege candidato e eleição com
+chaves estrangeiras e impede exclusão que deixaria votos órfãos.
 
 ---
 
@@ -106,7 +110,7 @@ estado atual.
 - ranking e relatório Excel;
 - encerramento automático e envio de e-mail.
 
-O sistema não possui múltiplas eleições, paginação, edição geral, PDF efetivo ou
+O sistema não possui paginação, edição geral, PDF efetivo ou
 recuperação de senha.
 
 ---

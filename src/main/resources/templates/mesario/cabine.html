@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mesário - Cabine</title>
+    <link rel="stylesheet" th:href="@{/css/estilo.css}">
+</head>
+<body>
+    <main class="container" style="max-width: 720px;">
+        <div class="logo">
+            <h1>CONTROLE DA CABINE</h1>
+            <p>Confira o crachá e recolha a assinatura antes de liberar.</p>
+        </div>
+
+        <div th:if="${sucesso}" class="success" role="status" th:text="${sucesso}"></div>
+        <div th:if="${erro}" class="error" role="alert" th:text="${erro}"></div>
+
+        <section class="card">
+            <h2>Status da cabine</h2>
+            <div th:if="${cabine.status == null}" class="info">Aguardando a próxima liberação.</div>
+            <div th:unless="${cabine.status == null}" style="margin-top: 16px;">
+                <p><strong>Status:</strong> <span class="badge" th:text="${cabine.status}"></span></p>
+                <p th:if="${cabine.ativa()}"><strong>Eleitor:</strong> <span th:text="${cabine.nome}"></span></p>
+                <p th:if="${cabine.ativa()}"><strong>Matrícula:</strong> <span th:text="${cabine.matricula}"></span></p>
+                <p><strong>Tentativas incorretas:</strong> <span th:text="${cabine.tentativas}"></span></p>
+                <p th:if="${cabine.expiraEm}"><strong>Expira:</strong>
+                    <span th:text="${#temporals.format(cabine.expiraEm, 'dd/MM/yyyy HH:mm:ss')}"></span>
+                </p>
+            </div>
+        </section>
+
+        <section class="card" style="margin-top: 20px;" th:if="${!cabine.ativa()}">
+            <h2>Liberar eleitor</h2>
+            <form th:action="@{/mesario/cabine/liberar}" method="post" style="margin-top: 16px;">
+                <div class="form-group">
+                    <label for="matricula">Matrícula conferida</label>
+                    <input type="text" id="matricula" name="matricula" inputmode="numeric"
+                           pattern="[0-9]{1,20}" maxlength="20" required autofocus autocomplete="off">
+                </div>
+                <button type="submit" class="btn btn-success"
+                        onclick="return confirm('O crachá/documento e a assinatura foram conferidos?')">
+                    Liberar cabine
+                </button>
+            </form>
+        </section>
+
+        <form th:if="${cabine.ativa()}" th:action="@{/mesario/cabine/cancelar}" method="post" style="margin-top: 20px;">
+            <button type="submit" class="btn btn-danger" onclick="return confirm('Cancelar esta liberação?')">
+                Cancelar liberação
+            </button>
+        </form>
+
+        <form th:action="@{/mesario/logout}" method="post" style="margin-top: 24px;">
+            <button type="submit" class="btn btn-secondary">Sair com segurança</button>
+        </form>
+    </main>
+    <script th:if="${cabine.ativa()}">
+        setTimeout(function () { location.reload(); }, 5000);
+    </script>
+</body>
+</html>

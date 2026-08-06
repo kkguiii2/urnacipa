@@ -18,13 +18,15 @@
             <a th:href="@{/admin/candidatos}" class="active">🗳️ Candidatos</a>
             <a th:href="@{/admin/configuracao}">⚙️ Config</a>
             <a th:href="@{/admin/relatorio}">📄 Relatório</a>
-            <a th:href="@{/admin/logout}" style="margin-left: auto;">🚪 Sair</a>
+            <form th:action="@{/admin/logout}" method="post" class="nav-logout-form">
+                <button type="submit" class="nav-logout">🚪 Sair</button>
+            </form>
         </div>
 
         <div th:if="${sucesso}" class="success" th:text="${sucesso}"></div>
         <div th:if="${erro}" class="error" th:text="${erro}"></div>
 
-        <div class="card">
+        <div class="card" th:if="${!cadastroBloqueado}">
             <h3>Adicionar Candidato</h3>
             <form th:action="@{/admin/candidatos/adicionar}" method="post" enctype="multipart/form-data" style="margin-top: 15px;">
                 <div style="display: grid; grid-template-columns: 100px 1fr; gap: 15px; align-items: start;">
@@ -39,7 +41,7 @@
                 </div>
                 <div class="form-group" style="margin-top: 10px;">
                     <label for="foto">Foto do Candidato</label>
-                    <input type="file" id="foto" name="foto" accept="image/*" style="padding: 10px;">
+                    <input type="file" id="foto" name="foto" accept="image/jpeg,image/png" style="padding: 10px;">
                     <img id="fotoPreview" src="#" alt="Preview" class="photo-preview" style="display:none; margin-top: 10px;">
                 </div>
                 <button type="submit" class="btn btn-primary" style="width: auto; margin-top: 10px;">Adicionar</button>
@@ -58,12 +60,12 @@
                         <th>Número</th>
                         <th>Nome</th>
                         <th>Status</th>
-                        <th>Ações</th>
+                        <th th:if="${!cadastroBloqueado}">Ações</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr th:each="candidato : ${candidatos}">
-                        <td>
+                        <td th:if="${!cadastroBloqueado}">
                             <img th:if="${candidato.foto}" th:src="@{'/uploads/' + ${candidato.foto}}" 
                                  style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid #ddd;">
                             <span th:unless="${candidato.foto}" style="display:inline-flex; width:50px; height:50px; border-radius:50%; background:#f0f0f0; align-items:center; justify-content:center; font-size:20px;">👤</span>

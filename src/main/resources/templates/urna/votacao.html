@@ -84,22 +84,40 @@
                     document.getElementById('numero').dispatchEvent(new Event('input'));
                 };
 
-                var photoHtml = '';
+                var photo = document.createElement('div');
+                photo.className = 'modal-candidate-photo';
                 if (c.foto) {
-                    photoHtml = '<div class="modal-candidate-photo">' +
-                                '<img src="/uploads/' + c.foto + '" alt="' + c.nome + '" onerror="this.parentElement.innerHTML=\'<span class=modal-candidate-placeholder>👤</span>\'">' +
-                                '</div>';
+                    var img = document.createElement('img');
+                    img.src = '/uploads/' + encodeURIComponent(c.foto);
+                    img.alt = c.nome;
+                    img.onerror = function() {
+                        photo.replaceChildren(criarPlaceholder());
+                    };
+                    photo.appendChild(img);
                 } else {
-                    photoHtml = '<div class="modal-candidate-photo"><span class="modal-candidate-placeholder">👤</span></div>';
+                    photo.appendChild(criarPlaceholder());
                 }
 
-                card.innerHTML = photoHtml +
-                    '<div class="modal-candidate-number">Nº ' + c.numero + '</div>' +
-                    '<div class="modal-candidate-name">' + c.nome + '</div>' +
-                    '<div class="modal-candidate-hint">Clique para selecionar</div>';
+                var numero = document.createElement('div');
+                numero.className = 'modal-candidate-number';
+                numero.textContent = 'Nº ' + c.numero;
+                var nome = document.createElement('div');
+                nome.className = 'modal-candidate-name';
+                nome.textContent = c.nome;
+                var dica = document.createElement('div');
+                dica.className = 'modal-candidate-hint';
+                dica.textContent = 'Clique para selecionar';
+                card.append(photo, numero, nome, dica);
                 grid.appendChild(card);
             });
         })();
+
+        function criarPlaceholder() {
+            var placeholder = document.createElement('span');
+            placeholder.className = 'modal-candidate-placeholder';
+            placeholder.textContent = '👤';
+            return placeholder;
+        }
 
         // ── Toggle modal ──
         function toggleCandidatos() {

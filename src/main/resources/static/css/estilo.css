@@ -1148,3 +1148,15 @@ body {
         font-size: 0.85em;
     }
 }
+.nav-logout-form {
+    margin-left: auto;
+}
+
+.nav-logout {
+    border: 0;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    font: inherit;
+    padding: 10px 15px;
+}

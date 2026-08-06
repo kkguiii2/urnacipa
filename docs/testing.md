@@ -3,16 +3,21 @@
 ## Estratégia existente
 
 A suíte usa JUnit 5, AssertJ, Mockito, Spring MVC Test e Spring Security Test.
-Foram encontradas 46 rotinas `@Test` em 6 classes.
+O build atual executa 58 testes sem falhas em 11 classes.
 
 | Classe | Testes | Escopo |
 | --- | ---: | --- |
 | `ImportacaoEleitoresServiceTest` | 30 | leitura, validação, limites, duplicidade, concorrência de matrícula e persistência parcial |
-| `ImportacaoEleitoresControllerTest` | 11 | autenticação, role, CSRF, PRG, downloads e mensagens |
+| `ImportacaoEleitoresControllerTest` | 12 | autenticação, role, CSRF, uploads públicos, PRG e downloads |
 | `PlanilhaEleitoresServiceTest` | 2 | modelo e relatório de erros XLSX |
 | `CustomAuthenticationProviderTest` | 1 | rejeição de admin inativo |
 | `AdminUsuariosTemplateTest` | 1 | renderização do formulário e resultado |
 | `ImportacaoUploadExceptionHandlerTest` | 1 | limite multipart |
+| `CabineVotacaoServiceTest` | 3 | liberação única, matrícula incorreta e bloqueio |
+| `VotacaoServiceTest` | 2 | voto anônimo e bloqueio atômico de duplicidade |
+| `UploadServiceTest` | 2 | imagem válida regravada e arquivo falso rejeitado |
+| `MesarioAuthenticationProviderTest` | 2 | papel exclusivo e conta inativa |
+| `CabineAuthenticationProviderTest` | 2 | credencial correta e senha inválida |
 
 ## Execução
 
@@ -47,12 +52,11 @@ Cobertura forte:
 - geração de arquivos da importação;
 - administrador inativo.
 
-Lacunas:
+Lacunas restantes:
 
-- registro de voto e concorrência;
 - autenticação completa e logout;
 - configuração e scheduler;
-- cadastros e upload de foto;
+- cadastros administrativos completos;
 - geração do relatório principal/e-mail;
 - banco real PostgreSQL;
 - Docker;
