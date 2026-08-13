@@ -85,6 +85,28 @@ CREATE TABLE IF NOT EXISTS participacoes_eleicao (
 );
 
 -- ============================================================
+-- Garantir colunas essenciais caso tabelas já existam
+-- ============================================================
+ALTER TABLE votos ADD COLUMN IF NOT EXISTS candidato_id BIGINT;
+ALTER TABLE votos ADD COLUMN IF NOT EXISTS eleicao_id BIGINT;
+ALTER TABLE votos ADD COLUMN IF NOT EXISTS token VARCHAR(36);
+ALTER TABLE votos ADD COLUMN IF NOT EXISTS data_hora TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+
+ALTER TABLE sessoes_cabine ADD COLUMN IF NOT EXISTS eleicao_id BIGINT;
+ALTER TABLE sessoes_cabine ADD COLUMN IF NOT EXISTS usuario_id BIGINT;
+ALTER TABLE sessoes_cabine ADD COLUMN IF NOT EXISTS mesario_username VARCHAR(100);
+ALTER TABLE sessoes_cabine ADD COLUMN IF NOT EXISTS status VARCHAR(20);
+ALTER TABLE sessoes_cabine ADD COLUMN IF NOT EXISTS liberada_em TIMESTAMP;
+ALTER TABLE sessoes_cabine ADD COLUMN IF NOT EXISTS expira_em TIMESTAMP;
+ALTER TABLE sessoes_cabine ADD COLUMN IF NOT EXISTS identificada_em TIMESTAMP;
+ALTER TABLE sessoes_cabine ADD COLUMN IF NOT EXISTS concluida_em TIMESTAMP;
+ALTER TABLE sessoes_cabine ADD COLUMN IF NOT EXISTS tentativas INTEGER DEFAULT 0;
+
+ALTER TABLE participacoes_eleicao ADD COLUMN IF NOT EXISTS eleicao_id BIGINT;
+ALTER TABLE participacoes_eleicao ADD COLUMN IF NOT EXISTS usuario_id BIGINT;
+ALTER TABLE participacoes_eleicao ADD COLUMN IF NOT EXISTS votou_em TIMESTAMP;
+
+-- ============================================================
 -- Índices de performance
 -- ============================================================
 CREATE INDEX IF NOT EXISTS idx_usuarios_matricula    ON usuarios(matricula);
@@ -96,31 +118,35 @@ CREATE INDEX IF NOT EXISTS idx_sessao_cabine_eleicao ON sessoes_cabine(eleicao_i
 CREATE INDEX IF NOT EXISTS idx_sessao_cabine_usuario ON sessoes_cabine(usuario_id);
 
 -- ============================================================
--- Chaves estrangeiras
+-- Chaves estrangeiras com verificação de existência
 -- ============================================================
-ALTER TABLE votos
-    ADD CONSTRAINT fk_voto_candidato
-        FOREIGN KEY (candidato_id) REFERENCES candidatos(id) ON DELETE RESTRICT;
-
-ALTER TABLE votos
-    ADD CONSTRAINT fk_voto_eleicao
-        FOREIGN KEY (eleicao_id) REFERENCES configuracao_eleicao(id) ON DELETE RESTRICT;
-
-ALTER TABLE sessoes_cabine
-    ADD CONSTRAINT fk_sessao_eleicao
-        FOREIGN KEY (eleicao_id) REFERENCES configuracao_eleicao(id) ON DELETE RESTRICT;
-
-ALTER TABLE sessoes_cabine
-    ADD CONSTRAINT fk_sessao_usuario
-        FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE RESTRICT;
-
-ALTER TABLE participacoes_eleicao
-    ADD CONSTRAINT fk_participacao_eleicao
-        FOREIGN KEY (eleicao_id) REFERENCES configuracao_eleicao(id) ON DELETE RESTRICT;
-
-ALTER TABLE participacoes_eleicao
-    ADD CONSTRAINT fk_participacao_usuario
-        FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE RESTRICT;
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_voto_candidato') THEN
+        ALTER TABLE votos ADD CONSTRAINT fk_voto_candidato
+            FOREIGN KEY (candidato_id) REFERENCES candidatos(id) ON DELETE RESTRICT;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_voto_eleicao') THEN
+        ALTER TABLE votos ADD CONSTRAINT fk_voto_eleicao
+            FOREIGN KEY (eleicao_id) REFERENCES configuracao_eleicao(id) ON DELETE RESTRICT;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_sessao_eleicao') THEN
+        ALTER TABLE sessoes_cabine ADD CONSTRAINT fk_sessao_eleicao
+            FOREIGN KEY (eleicao_id) REFERENCES configuracao_eleicao(id) ON DELETE RESTRICT;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_sessao_usuario') THEN
+        ALTER TABLE sessoes_cabine ADD CONSTRAINT fk_sessao_usuario
+            FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE RESTRICT;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_participacao_eleicao') THEN
+        ALTER TABLE participacoes_eleicao ADD CONSTRAINT fk_participacao_eleicao
+            FOREIGN KEY (eleicao_id) REFERENCES configuracao_eleicao(id) ON DELETE RESTRICT;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_participacao_usuario') THEN
+        ALTER TABLE participacoes_eleicao ADD CONSTRAINT fk_participacao_usuario
+            FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE RESTRICT;
+    END IF;
+END $$;
 
 -- ============================================================
 -- Dado inicial: configuração da eleição (apenas se não existir)
@@ -128,3 +154,4 @@ ALTER TABLE participacoes_eleicao
 INSERT INTO configuracao_eleicao (status)
 SELECT 'FECHADA'
 WHERE NOT EXISTS (SELECT 1 FROM configuracao_eleicao);
+

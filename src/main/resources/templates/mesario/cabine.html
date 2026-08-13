@@ -18,8 +18,8 @@
 
         <section class="card">
             <h2>Status da cabine</h2>
-            <div th:if="${cabine.status == null}" class="info">Aguardando a próxima liberação.</div>
-            <div th:unless="${cabine.status == null}" style="margin-top: 16px;">
+            <div th:if="${cabine == null || cabine.status == null}" class="info">Aguardando a próxima liberação.</div>
+            <div th:unless="${cabine == null || cabine.status == null}" style="margin-top: 16px;">
                 <p><strong>Status:</strong> <span class="badge" th:text="${cabine.status}"></span></p>
                 <p th:if="${cabine.ativa()}"><strong>Eleitor:</strong> <span th:text="${cabine.nome}"></span></p>
                 <p th:if="${cabine.ativa()}"><strong>Matrícula:</strong> <span th:text="${cabine.matricula}"></span></p>
@@ -30,7 +30,7 @@
             </div>
         </section>
 
-        <section class="card" style="margin-top: 20px;" th:if="${!cabine.ativa()}">
+        <section class="card" style="margin-top: 20px;" th:if="${cabine == null || !cabine.ativa()}">
             <h2>Liberar eleitor</h2>
             <form th:action="@{/mesario/cabine/liberar}" method="post" style="margin-top: 16px;">
                 <div class="form-group">
@@ -45,7 +45,7 @@
             </form>
         </section>
 
-        <form th:if="${cabine.ativa()}" th:action="@{/mesario/cabine/cancelar}" method="post" style="margin-top: 20px;">
+        <form th:if="${cabine != null && cabine.ativa()}" th:action="@{/mesario/cabine/cancelar}" method="post" style="margin-top: 20px;">
             <button type="submit" class="btn btn-danger" onclick="return confirm('Cancelar esta liberação?')">
                 Cancelar liberação
             </button>
@@ -55,7 +55,7 @@
             <button type="submit" class="btn btn-secondary">Sair com segurança</button>
         </form>
     </main>
-    <script th:if="${cabine.ativa()}">
+    <script th:if="${cabine != null && cabine.ativa()}">
         setTimeout(function () { location.reload(); }, 5000);
     </script>
 </body>

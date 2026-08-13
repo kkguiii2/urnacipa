@@ -8,6 +8,8 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
@@ -20,13 +22,18 @@ public class SecurityConfig {
     private final CabineAuthenticationProvider cabineAuthenticationProvider;
 
     @Bean
+    public SessionRegistry sessionRegistry() {
+        return new SessionRegistryImpl();
+    }
+
+    @Bean
     @Order(1)
     public SecurityFilterChain mesarioSecurityFilterChain(HttpSecurity http) throws Exception {
         http
             .securityMatcher("/mesario/**")
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/mesario/login").permitAll()
-                .anyRequest().hasRole("MESARIO")
+                .anyRequest().hasAnyRole("MESARIO", "ADMIN")
             )
             .formLogin(form -> form
                 .loginPage("/mesario/login")
@@ -45,9 +52,11 @@ public class SecurityConfig {
             .sessionManagement(session -> session
                 .sessionFixation(fixation -> fixation.migrateSession())
                 .maximumSessions(1)
+                .sessionRegistry(sessionRegistry())
                 .maxSessionsPreventsLogin(false)
             )
-            .authenticationProvider(mesarioAuthenticationProvider);
+            .authenticationProvider(mesarioAuthenticationProvider)
+            .authenticationProvider(adminAuthenticationProvider);
         return http.build();
     }
 
@@ -58,7 +67,7 @@ public class SecurityConfig {
             .securityMatcher("/cabine/**", "/auth/**", "/votacao/**")
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/cabine/login").permitAll()
-                .anyRequest().hasRole("CABINE")
+                .anyRequest().hasAnyRole("CABINE", "MESARIO", "ADMIN")
             )
             .formLogin(form -> form
                 .loginPage("/cabine/login")
@@ -77,9 +86,11 @@ public class SecurityConfig {
             .sessionManagement(session -> session
                 .sessionFixation(fixation -> fixation.migrateSession())
                 .maximumSessions(1)
+                .sessionRegistry(sessionRegistry())
                 .maxSessionsPreventsLogin(false)
             )
-            .authenticationProvider(cabineAuthenticationProvider);
+            .authenticationProvider(cabineAuthenticationProvider)
+            .authenticationProvider(adminAuthenticationProvider);
         return http.build();
     }
 
@@ -90,6 +101,13 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
                         "/admin/login",
+                        "/favicon.ico",
+                        "/*.ico",
+                        "/*.png",
+                        "/*.jpg",
+                        "/*.jpeg",
+                        "/*.css",
+                        "/*.js",
                         "/css/**",
                         "/js/**",
                         "/img/**",
@@ -97,9 +115,10 @@ public class SecurityConfig {
                         "/uploads/**",
                         "/webjars/**",
                         "/error",
+                        "/error/**",
                         "/").permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
-                .anyRequest().denyAll()
+                .anyRequest().authenticated()
             )
             .formLogin(form -> form
                 .loginPage("/admin/login")
@@ -119,6 +138,7 @@ public class SecurityConfig {
             .sessionManagement(session -> session
                 .sessionFixation(fixation -> fixation.migrateSession())
                 .maximumSessions(1)
+                .sessionRegistry(sessionRegistry())
                 .maxSessionsPreventsLogin(false)
             )
             .authenticationProvider(adminAuthenticationProvider)

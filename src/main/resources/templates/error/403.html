@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acesso Negado - CIPA</title>
+    <link rel="stylesheet" th:href="@{/css/estilo.css}">
+</head>
+<body>
+    <main class="container" style="max-width: 500px;">
+        <div class="logo">
+            <h1>🚫 ACESSO NEGADO</h1>
+            <p>Erro 403 Forbidden</p>
+        </div>
+        <div class="card" style="text-align: center;">
+            <p style="font-size: 1.1em; color: #4a5568; margin-bottom: 20px;">
+                Você não possui permissão para acessar o recurso solicitado:
+                <strong th:text="${path != null ? path : 'recurso protegido'}">/endpoint</strong>
+            </p>
+            <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                <a th:href="@{/admin/dashboard}" class="btn btn-primary" style="width: auto; padding: 10px 24px;">Painel Admin</a>
+                <a th:href="@{/}" class="btn btn-secondary" style="width: auto; padding: 10px 24px;">Página Inicial</a>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

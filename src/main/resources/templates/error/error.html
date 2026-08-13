@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Erro - CIPA</title>
+    <link rel="stylesheet" th:href="@{/css/estilo.css}">
+</head>
+<body>
+    <main class="container" style="max-width: 500px;">
+        <div class="logo">
+            <h1>⚠️ OCORREU UM ERRO</h1>
+            <p th:text="${status != null ? 'Status ' + status : 'Erro no sistema'}">Erro</p>
+        </div>
+        <div class="card" style="text-align: center;">
+            <p style="font-size: 1.1em; color: #4a5568; margin-bottom: 20px;" th:text="${message != null ? message : 'Não foi possível concluir o processamento.'}">
+                Não foi possível concluir a requisição.
+            </p>
+            <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                <a th:href="@{/admin/dashboard}" class="btn btn-primary" style="width: auto; padding: 10px 24px;">Painel Admin</a>
+                <a th:href="@{/}" class="btn btn-secondary" style="width: auto; padding: 10px 24px;">Página Inicial</a>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

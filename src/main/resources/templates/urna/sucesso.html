@@ -15,10 +15,29 @@
             <p>A cabine será bloqueada para o próximo eleitor.</p>
         </div>
     </main>
-    <script>
-        setTimeout(function () {
-            window.location.replace('/auth/login');
-        }, 5000);
+    <audio id="confirma-audio" th:src="@{/sound/confirma_urna.mp3}" preload="auto"></audio>
+    <script th:inline="javascript">
+        (function () {
+            var loginUrl = /*[[@{/auth/login}]]*/ '/auth/login';
+            var audio = document.getElementById('confirma-audio');
+
+            function redirect() {
+                window.location.replace(loginUrl);
+            }
+
+            // Redireciona assim que o som terminar
+            audio.addEventListener('ended', redirect);
+
+            // Fallback: caso o áudio não carregue/toque, redireciona após 6 segundos
+            var fallback = setTimeout(redirect, 6000);
+
+            audio.play().then(function () {
+                // Som tocando normalmente — cancela o fallback fixo
+                clearTimeout(fallback);
+            }).catch(function () {
+                // Autoplay bloqueado pelo navegador — usa o fallback
+            });
+        })();
     </script>
 </body>
 </html>

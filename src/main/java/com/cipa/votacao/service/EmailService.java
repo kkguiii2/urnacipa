@@ -28,6 +28,9 @@ public class EmailService {
     @Value("${app.email.destinatario:}")
     private String emailDestinatario;
 
+    @Value("${spring.mail.username:}")
+    private String emailRemetente;
+
     public void enviarRelatorio(byte[] relatorio, byte[] pdf) {
         if (emailDestinatario == null || emailDestinatario.isEmpty()) {
             log.warn("E-mail do destinatário não configurado. Relatório não será enviado.");
@@ -39,6 +42,9 @@ public class EmailService {
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
             helper.setTo(emailDestinatario);
+            if (emailRemetente != null && !emailRemetente.isEmpty()) {
+                helper.setFrom(emailRemetente);
+            }
             helper.setSubject("Relatório da Eleição CIPA - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
             helper.setText("Prezado(a),\n\nSegue em anexo o relatório da eleição da CIPA.\n\nAtenciosamente,\nSistema de Votação CIPA");
 
@@ -67,6 +73,9 @@ public class EmailService {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setTo(emailDestinatario);
+            if (emailRemetente != null && !emailRemetente.isEmpty()) {
+                message.setFrom(emailRemetente);
+            }
             message.setSubject("Relatório da Eleição CIPA - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
             message.setText("Prezado(a),\n\nSegue o relatório da eleição da CIPA.\n\n" + conteudo + "\n\nAtenciosamente,\nSistema de Votação CIPA");
             mailSender.send(message);

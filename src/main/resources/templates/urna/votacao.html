@@ -5,199 +5,277 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CIPA - Votar</title>
     <link rel="stylesheet" th:href="@{/css/estilo.css}">
+    <style>
+        /* ── Grade de candidatos inline ── */
+        .candidatos-inline {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 16px;
+            width: 100%;
+            margin: 20px 0 10px;
+        }
+
+        .candidato-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            padding: 16px 10px;
+            border: 2px solid #d1dbe8;
+            border-radius: 14px;
+            background: #f4f7fb;
+            cursor: pointer;
+            transition: transform 0.18s, border-color 0.18s, background 0.18s, box-shadow 0.18s;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .candidato-card:hover {
+            transform: translateY(-4px);
+            border-color: #2a5a8f;
+            background: #e8f0fa;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        }
+
+        .candidato-card.selecionado {
+            border-color: #27ae60;
+            background: #eafaf1;
+            box-shadow: 0 0 0 3px rgba(46,204,113,0.3);
+            transform: translateY(-2px);
+        }
+
+        .candidato-card .card-foto {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #dde6f0;
+            font-size: 32px;
+            flex-shrink: 0;
+        }
+
+        .candidato-card .card-foto img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .candidato-card .card-numero {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1e3a5f;
+            letter-spacing: 1px;
+        }
+
+        .candidato-card .card-nome {
+            font-size: 13px;
+            font-weight: 600;
+            color: #2c3e50;
+            text-align: center;
+            line-height: 1.3;
+        }
+
+        /* ── Área de confirmação ── */
+        .confirmacao-area {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            margin-top: 8px;
+            width: 100%;
+        }
+
+        .confirmacao-area.visivel {
+            display: flex;
+        }
+
+        .confirmacao-info {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            background: #eafaf1;
+            border: 1px solid #a9dfbf;
+            border-radius: 12px;
+            padding: 14px 20px;
+            width: 100%;
+        }
+
+        .confirmacao-foto {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #dde6f0;
+            font-size: 26px;
+            flex-shrink: 0;
+        }
+
+        .confirmacao-foto img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .confirmacao-texto {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .confirmacao-texto .conf-numero {
+            font-size: 12px;
+            color: #1e3a5f;
+            font-weight: 600;
+        }
+
+        .confirmacao-texto .conf-nome {
+            font-size: 16px;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <div class="logo">
             <h1>🗳️ ELEIÇÃO CIPA</h1>
             <p>Bem-vindo, <span th:text="${nome}"></span></p>
-            <p>Digite o número do candidato</p>
+            <p>Escolha seu candidato</p>
         </div>
-
-        <!-- Botão Visualizar Candidatos -->
-        <button type="button" class="btn-view-candidates" onclick="toggleCandidatos()">
-            <span class="btn-view-icon">👥</span>
-            <span>Visualizar Candidatos</span>
-        </button>
 
         <div th:if="${erro}" class="error" th:text="${erro}"></div>
 
         <form th:action="@{/votacao/votar}" method="post" id="votoForm">
             <input type="hidden" name="candidatoId" id="candidatoId" value="">
-            
-            <div class="form-group">
-                <label for="numero">Número do candidato</label>
-                <input type="number" id="numero" name="numero" required min="1" max="99" 
-                       autofocus autocomplete="off" placeholder="Digite 1 ou 2 dígitos">
-            </div>
 
-            <div class="vote-display" id="candidateDisplay">
-                <div class="candidate-photo-container" id="photoContainer" style="display:none;">
-                    <img src="" alt="Foto do Candidato" class="photo" id="candidatePhoto">
+            <!-- Grade de candidatos -->
+            <div class="candidatos-inline" id="candidatesGrid"></div>
+
+            <!-- Área de confirmação após seleção -->
+            <div class="confirmacao-area" id="confirmacaoArea">
+                <div class="confirmacao-info" id="confirmacaoInfo">
+                    <div class="confirmacao-foto" id="confFoto"></div>
+                    <div class="confirmacao-texto">
+                        <span class="conf-numero" id="confNumero"></span>
+                        <span class="conf-nome" id="confNome"></span>
+                    </div>
                 </div>
-                <div class="candidate-name" id="candidateName"></div>
-                <div class="candidate-number" id="candidateNumber"></div>
-            </div>
 
-            <div class="btn-group" id="actionButtons" style="display:none;">
-                <button type="button" class="btn btn-success" onclick="confirmarVoto()">✅ Confirmar</button>
-                <button type="button" class="btn btn-warning" onclick="corrigirVoto()">✏️ Corrigir</button>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-success" onclick="confirmarVoto()">✅ Confirmar</button>
+                    <button type="button" class="btn btn-warning" onclick="corrigirVoto()">✏️ Corrigir</button>
+                </div>
             </div>
         </form>
     </div>
 
-    <!-- Modal de Candidatos -->
-    <div class="modal-overlay" id="modalOverlay" onclick="fecharModal(event)">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>👥 Candidatos Disponíveis</h2>
-                <button type="button" class="modal-close" onclick="toggleCandidatos()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="candidates-grid" id="candidatesGrid">
-                    <!-- Preenchido via JS -->
-                </div>
-            </div>
-            <div class="modal-footer">
-                <p>Escolha o número do candidato desejado e digite na urna</p>
-                <button type="button" class="btn btn-primary" onclick="toggleCandidatos()" style="margin-top:12px; width: auto; padding: 10px 40px;">Fechar</button>
-            </div>
-        </div>
-    </div>
-
     <script th:inline="javascript">
         var candidatos = /*[[${candidatosJson}]]*/ [];
-        
-        // ── Preencher grid de candidatos no modal ──
-        (function() {
+        var uploadsUrl = /*[[@{/uploads/}]]*/ '/uploads/';
+        var candidatoSelecionado = null;
+
+        // ── Renderizar cards dos candidatos ──
+        (function () {
             var grid = document.getElementById('candidatesGrid');
             if (candidatos.length === 0) {
-                grid.innerHTML = '<p style="text-align:center;color:#999;grid-column:1/-1;">Nenhum candidato cadastrado.</p>';
+                grid.innerHTML = '<p style="text-align:center;color:rgba(255,255,255,0.5);grid-column:1/-1;">Nenhum candidato cadastrado.</p>';
                 return;
             }
-            candidatos.forEach(function(c) {
-                var card = document.createElement('div');
-                card.className = 'modal-candidate-card';
-                card.onclick = function() {
-                    toggleCandidatos();
-                    document.getElementById('numero').value = c.numero;
-                    document.getElementById('numero').dispatchEvent(new Event('input'));
-                };
 
-                var photo = document.createElement('div');
-                photo.className = 'modal-candidate-photo';
+            candidatos.forEach(function (c) {
+                var card = document.createElement('div');
+                card.className = 'candidato-card';
+                card.dataset.id = c.id;
+                card.onclick = function () { selecionarCandidato(c, card); };
+
+                // Foto
+                var fotoDiv = document.createElement('div');
+                fotoDiv.className = 'card-foto';
                 if (c.foto) {
                     var img = document.createElement('img');
-                    img.src = '/uploads/' + encodeURIComponent(c.foto);
+                    img.src = uploadsUrl + encodeURIComponent(c.foto);
                     img.alt = c.nome;
-                    img.onerror = function() {
-                        photo.replaceChildren(criarPlaceholder());
-                    };
-                    photo.appendChild(img);
+                    img.onerror = function () { fotoDiv.innerHTML = '👤'; };
+                    fotoDiv.appendChild(img);
                 } else {
-                    photo.appendChild(criarPlaceholder());
+                    fotoDiv.textContent = '👤';
                 }
 
-                var numero = document.createElement('div');
-                numero.className = 'modal-candidate-number';
-                numero.textContent = 'Nº ' + c.numero;
-                var nome = document.createElement('div');
-                nome.className = 'modal-candidate-name';
-                nome.textContent = c.nome;
-                var dica = document.createElement('div');
-                dica.className = 'modal-candidate-hint';
-                dica.textContent = 'Clique para selecionar';
-                card.append(photo, numero, nome, dica);
+                // Número
+                var numDiv = document.createElement('div');
+                numDiv.className = 'card-numero';
+                numDiv.textContent = 'Nº ' + c.numero;
+
+                // Nome
+                var nomeDiv = document.createElement('div');
+                nomeDiv.className = 'card-nome';
+                nomeDiv.textContent = c.nome;
+
+                card.append(fotoDiv, numDiv, nomeDiv);
                 grid.appendChild(card);
             });
         })();
 
-        function criarPlaceholder() {
-            var placeholder = document.createElement('span');
-            placeholder.className = 'modal-candidate-placeholder';
-            placeholder.textContent = '👤';
-            return placeholder;
-        }
+        // ── Selecionar candidato ──
+        function selecionarCandidato(c, card) {
+            // Remove seleção anterior
+            document.querySelectorAll('.candidato-card.selecionado').forEach(function (el) {
+                el.classList.remove('selecionado');
+            });
 
-        // ── Toggle modal ──
-        function toggleCandidatos() {
-            var overlay = document.getElementById('modalOverlay');
-            overlay.classList.toggle('active');
-            document.body.style.overflow = overlay.classList.contains('active') ? 'hidden' : '';
-        }
+            card.classList.add('selecionado');
+            candidatoSelecionado = c;
+            document.getElementById('candidatoId').value = c.id;
 
-        function fecharModal(event) {
-            if (event.target === event.currentTarget) {
-                toggleCandidatos();
-            }
-        }
-
-        // ── Input do número ──
-        document.getElementById('numero').addEventListener('input', function() {
-            var numero = parseInt(this.value);
-            var display = document.getElementById('candidateDisplay');
-            var nameEl = document.getElementById('candidateName');
-            var numberEl = document.getElementById('candidateNumber');
-            var photoContainer = document.getElementById('photoContainer');
-            var photoEl = document.getElementById('candidatePhoto');
-            var buttons = document.getElementById('actionButtons');
-            var hiddenId = document.getElementById('candidatoId');
-            
-            if (isNaN(numero)) {
-                display.classList.remove('active');
-                buttons.style.display = 'none';
-                hiddenId.value = '';
-                return;
-            }
-            
-            var candidato = candidatos.find(function(c) { return c.numero === numero; });
-            
-            if (candidato) {
-                nameEl.textContent = candidato.nome;
-                numberEl.textContent = 'Nº ' + candidato.numero;
-                if (candidato.foto) {
-                    photoEl.src = '/uploads/' + candidato.foto;
-                    photoEl.onerror = function() { photoContainer.style.display = 'none'; };
-                    photoContainer.style.display = 'block';
-                } else {
-                    photoContainer.style.display = 'none';
-                }
-                display.classList.add('active');
-                buttons.style.display = 'flex';
-                hiddenId.value = candidato.id;
+            // Preenche área de confirmação
+            var confFoto = document.getElementById('confFoto');
+            confFoto.innerHTML = '';
+            if (c.foto) {
+                var img = document.createElement('img');
+                img.src = uploadsUrl + encodeURIComponent(c.foto);
+                img.alt = c.nome;
+                img.onerror = function () { confFoto.innerHTML = '👤'; };
+                confFoto.appendChild(img);
             } else {
-                display.classList.remove('active');
-                buttons.style.display = 'none';
-                hiddenId.value = '';
+                confFoto.textContent = '👤';
             }
-        });
+            document.getElementById('confNumero').textContent = 'Nº ' + c.numero;
+            document.getElementById('confNome').textContent = c.nome;
 
+            // Exibe área de confirmação
+            document.getElementById('confirmacaoArea').classList.add('visivel');
+
+            // Scroll suave até os botões
+            document.getElementById('confirmacaoArea').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // ── Confirmar voto ──
         function confirmarVoto() {
             var candidatoId = document.getElementById('candidatoId').value;
             if (!candidatoId) {
-                alert('Selecione um candidato válido.');
+                alert('Selecione um candidato.');
                 return;
             }
-            if (confirm('Confirmar voto para o candidato selecionado?')) {
+            if (confirm('Confirmar voto para ' + (candidatoSelecionado ? candidatoSelecionado.nome : 'o candidato selecionado') + '?')) {
                 document.getElementById('votoForm').submit();
             }
         }
 
+        // ── Corrigir voto ──
         function corrigirVoto() {
-            document.getElementById('numero').value = '';
-            document.getElementById('candidateDisplay').classList.remove('active');
-            document.getElementById('actionButtons').style.display = 'none';
+            document.querySelectorAll('.candidato-card.selecionado').forEach(function (el) {
+                el.classList.remove('selecionado');
+            });
             document.getElementById('candidatoId').value = '';
-            document.getElementById('photoContainer').style.display = 'none';
-            document.getElementById('numero').focus();
+            document.getElementById('confirmacaoArea').classList.remove('visivel');
+            candidatoSelecionado = null;
         }
-
-        // Fechar com ESC
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && document.getElementById('modalOverlay').classList.contains('active')) {
-                toggleCandidatos();
-            }
-        });
     </script>
 </body>
 </html>
